@@ -178,4 +178,4 @@ shell.nix
 .envrc
 
 # File che riguardano impostazioni locali (come quelle del database)
-progettoiseo/progettoiseo/settings.py
+# progettoiseo/progettoiseo/settings.py
