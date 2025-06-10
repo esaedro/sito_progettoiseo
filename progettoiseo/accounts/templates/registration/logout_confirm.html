@@ -18,7 +18,7 @@
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <form method="post" class="d-inline">
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-sign-out-alt"></i> Sì, Disconnettimi
@@ -27,6 +27,17 @@
                         <a href="{% url 'home' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Annulla
                         </a>
+                    </div>
+                    
+                    <!-- Alternative inline logout component for other templates -->
+                    <div class="mt-4 p-3 bg-light rounded d-none" id="logout-component">
+                        <small class="text-muted">Pulsante logout riutilizzabile:</small>
+                        <form method="post" action="{% url 'logout' %}" class="d-inline mt-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler uscire?')">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
