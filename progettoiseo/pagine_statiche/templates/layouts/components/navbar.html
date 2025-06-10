@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">Progettoiseo</a>
+    <a class="navbar-brand" href="/home">Progettoiseo</a>
     <button
         class="navbar-toggler"
         type="button"
@@ -17,5 +17,42 @@
             <li class="nav-item"><a class="nav-link" href="/authors">Eventi</a></li>
             <li class="nav-item"><a class="nav-link" href="/genres">Chi siamo</a></li>
         </ul>
+    </div>
+    <div class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+        <div class="nav-item dropdown">
+            <span class="navbar-text me-3">Ciao, {{ user.first_name|default:user.username }}!</span>
+            <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <img
+                    src="{% if user.profile.immagine_profilo %}{{ user.profile.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}"
+                    alt="Foto profilo"
+                    class="rounded-circle"
+                    width="32"
+                    height="32"
+                />
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="{% url 'profilo' %}">Gestisci Profilo</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        {% else %}
+        <a class="nav-link btn btn-outline-primary" href="/login">Login</a>
+        {% endif %}
     </div>
 </nav>

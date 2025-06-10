@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %} 
+
+{% block title %} Conferma Logout {% endblock %} 
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h4 class="mb-0">Conferma Logout</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-question-circle fa-3x text-warning mb-3"></i>
+                        <h5>Sei sicuro di voler uscire?</h5>
+                        <p class="text-muted">Verrai disconnesso dal tuo account.</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-sign-out-alt"></i> Sì, Disconnettimi
+                            </button>
+                        </form>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Annulla
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
