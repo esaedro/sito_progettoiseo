@@ -147,5 +147,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Redirect dopo login/logout
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/home'
+
+# Redirect dopo modifica password - usando view personalizzata
+# PASSWORD_CHANGE_REDIRECT_URL = '/profilo'
+# PASSWORD_CHANGE_DONE_REDIRECT_URL = '/profilo'
