@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'pagine_statiche',
     'articoli',
     'eventi',
-    'utenti',
     'accounts'
 ]
 
