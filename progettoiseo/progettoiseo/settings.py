@@ -1,5 +1,7 @@
 import os
 
+# TODO: sistemare gli avvisi javascript che non compaiono alla creazione degli utenti, ma che compaiono dopo (tipo al logout o al login)
+
 """
 Django settings for progettoiseo project.
 
