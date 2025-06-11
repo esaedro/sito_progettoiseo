@@ -1,5 +1,5 @@
 from django.db import models
-from progettoiseo.accounts.models import ProfiloUtente
+from accounts.models import ProfiloUtente
 
 # Create your models here.
 
