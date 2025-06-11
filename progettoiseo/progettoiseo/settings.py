@@ -1,3 +1,5 @@
+import os
+
 """
 Django settings for progettoiseo project.
 
@@ -37,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'pagine_statiche',
+    'articoli',
+    'eventi',
+    'accounts'
 ]
 
 MIDDLEWARE = [
@@ -128,3 +134,22 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Redirect dopo login/logout
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/home'
+LOGOUT_REDIRECT_URL = '/home'
+
+# Redirect dopo modifica password - usando view personalizzata
+# PASSWORD_CHANGE_REDIRECT_URL = '/profilo'
+# PASSWORD_CHANGE_DONE_REDIRECT_URL = '/profilo'
