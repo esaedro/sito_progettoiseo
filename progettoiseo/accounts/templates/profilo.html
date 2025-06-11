@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %} 
+{% load l10n %}
 
 {% block title %} Gestisci Profilo {% endblock %} 
 
@@ -68,8 +69,9 @@
                         <label for="{{ form.numero_tessera.id_for_label }}" class="form-label">
                             Numero Tessera
                         </label>
-                        {{ form.numero_tessera }}
-                        <small class="form-text text-muted">Campo non modificabile</small>
+                        <div class="form-control-plaintext">
+                            {{ profilo_utente.numero_tessera|default:"Non disponibile" }}
+                        </div>
                         {% if form.numero_tessera.errors %}
                             <div class="text-danger">{{ form.numero_tessera.errors }}</div>
                         {% endif %}
@@ -79,8 +81,9 @@
                         <label for="{{ form.data_tesseramento.id_for_label }}" class="form-label">
                             Data Tesseramento
                         </label>
-                        {{ form.data_tesseramento }}
-                        <small class="form-text text-muted">Campo non modificabile</small>
+                        <div class="form-control-plaintext">
+                            {{ profilo_utente.data_tesseramento|date:"j F Y"|default:"Non disponibile" }}
+                        </div>
                         {% if form.data_tesseramento.errors %}
                             <div class="text-danger">{{ form.data_tesseramento.errors }}</div>
                         {% endif %}

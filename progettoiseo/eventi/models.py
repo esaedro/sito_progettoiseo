@@ -28,7 +28,7 @@ class Evento(models.Model):
 def validate_evento_fields(sender, instance, **kwargs):
     """
     Validazione dei campi dell'evento prima del salvataggio.
-    """ 
+    """
     if not instance.titolo:
         raise ValueError("Il titolo dell'evento non può essere vuoto.")
     if not instance.descrizione:
@@ -38,11 +38,11 @@ def validate_evento_fields(sender, instance, **kwargs):
     if not instance.date_evento:
         raise ValueError("La data dell'evento non può essere vuota.")
     if instance.stato not in dict(Evento._meta.get_field('stato').choices):
-        raise ValueError(f"Stato dell'evento non valido: {instance.stato}") 
+        raise ValueError(f"Stato dell'evento non valido: {instance.stato}")
 
 
     """    Validazione dei campi dell'evento prima del salvataggio.
-    Assicurati che il titolo, la descrizione, il luogo e la data siano forniti. 
+    Assicurati che il titolo, la descrizione, il luogo e la data siano forniti.
     Controlla che lo stato sia uno dei valori consentiti.
     """
     if not isinstance(instance.date_evento, list):
@@ -52,7 +52,7 @@ def validate_evento_fields(sender, instance, **kwargs):
             raise ValueError("Ogni data dell'evento deve essere una stringa.")
         # Puoi aggiungere ulteriori validazioni per il formato della data qui, se necessario
     if instance.immagine and not instance.immagine.name.endswith(('.png', '.jpg', '.jpeg')):
-        raise ValueError("L'immagine dell'evento deve essere in formato PNG, JPG o JPEG.")      
+        raise ValueError("L'immagine dell'evento deve essere in formato PNG, JPG o JPEG.")
     if instance.organizzatore is None:
         raise ValueError("L'organizzatore dell'evento non può essere vuoto.")
     if instance.numero_partecipanti < 0:
@@ -72,7 +72,7 @@ def create_evento(sender, instance, created, **kwargs):
         instance.save()
         print(f"Evento creato: {instance.titolo} da {instance.organizzatore.username}")
     else:
-        print(f"Evento aggiornato: {instance.titolo} da {instance.organizzatore.username}") 
+        print(f"Evento aggiornato: {instance.titolo} da {instance.organizzatore.username}")
 
 @receiver(post_save, sender=Evento)
 def update_evento(sender, instance, created, **kwargs):
@@ -101,7 +101,7 @@ def m2m_evento_iscritti(sender, instance, action, **kwargs):
         print(f"Numero di partecipanti aggiornato per l'evento: {instance.titolo} - {instance.numero_partecipanti} iscritti")
 
 
-@receivers.post_save(sender=Evento)
+@receiver(post_save, sender=Evento)
 def update_evento_count(sender, instance, created, **kwargs):
     """
     Aggiorna il numero di partecipanti all'evento quando un utente si iscrive o disiscrive.
@@ -123,7 +123,7 @@ def update_evento_iscritti(sender, instance, action, **kwargs):
         instance.numero_partecipanti = instance.iscritti.count()
         instance.save()
 
-@receiver(receivers.pre_delete, sender=Evento) 
+@receiver(receivers.pre_delete, sender=Evento)
 def delete_evento_image(sender, instance, **kwargs):
     """
     Elimina l'immagine dell'evento quando l'evento viene cancellato.
@@ -138,12 +138,12 @@ def validate_event_date(sender, instance, **kwargs):
     """
     if not instance.date_evento:
         raise ValueError("La data dell'evento non può essere vuota.")
-    
+
     # Assicurati che la data sia in un formato valido
     for date in instance.date_evento:
         if not isinstance(date, str):
             raise ValueError("La data dell'evento deve essere una stringa.")
-        
+
     # Puoi aggiungere ulteriori validazioni qui, ad esempio controllare che la data non sia nel passato
 @receiver(receivers.post_save, sender=Evento)
 def notify_event_creation(sender, instance, created, **kwargs):
@@ -154,7 +154,7 @@ def notify_event_creation(sender, instance, created, **kwargs):
         # Logica per inviare una notifica o un'email all'organizzatore
         print(f"Evento creato: {instance.titolo} da {instance.organizzatore.username}")
         # Qui puoi integrare un sistema di notifica o email
- 
+
 
 
 @receiver(receivers.post_delete, sender=Evento)
@@ -164,4 +164,3 @@ def notify_event_deletion(sender, instance, **kwargs):
     """
     # Logica per inviare una notifica o un'email all'organizzatore
     print(f"Evento cancellato: {instance.titolo} da {instance.organizzatore.username}")
-

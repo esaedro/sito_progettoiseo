@@ -1,9 +1,12 @@
+from importlib.resources import contents
+from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from .forms import ModificaProfiloForm, ModificaPasswordForm, RegistrazioneForm, LoginForm
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from .models import ProfiloUtente
 # Create your views here.
 
@@ -40,14 +43,18 @@ def custom_logout(request):
 def logout_success(request):
     return render(request, 'registration/logout.html')
 
+@permission_required('accounts.add_profiloutente')
 def registrazione(request):
     if request.method == 'POST':
         form = RegistrazioneForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('login')
+            # Il signal si occupa di creare e inizializzare automaticamente il profilo
+            user = form.save()
+            
+            messages.success(request, f'Registrazione completata con successo! Benvenuto {user.username}!')
+            return redirect('registrazione')
         else:
-            print(f"Errori form: {form.errors}")  # DEBUG
+            messages.error(request, 'Ci sono errori nel form. Controlla i dati inseriti.')
     else:
         form = RegistrazioneForm()
     return render(request, 'registrazione.html', {'form': form})
