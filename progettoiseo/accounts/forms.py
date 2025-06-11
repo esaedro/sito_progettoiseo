@@ -16,9 +16,9 @@ class ModificaPasswordForm(PasswordChangeForm):
 
 class ModificaProfiloForm(forms.ModelForm):
     immagine_profilo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'accept': 'image/*'}))
-    email = forms.EmailField(required=True)
-    numero_tessera = forms.CharField(max_length=20, required=False, disabled=True)
-    data_tesseramento = forms.DateField(required=False, disabled=True)
+    email = forms.EmailField(required=False)
+    numero_tessera = forms.CharField(max_length=20, required=True, disabled=True)
+    data_tesseramento = forms.DateField(required=True, disabled=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -45,22 +45,28 @@ class ModificaProfiloForm(forms.ModelForm):
         fields = ['immagine_profilo', 'email', 'numero_tessera', 'data_tesseramento']
 
 class RegistrazioneForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if '@' in username:
+            if User.objects.filter(email=username).exists():
+                raise forms.ValidationError("Questa email è già registrata.")
+        elif User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Questo username è già in uso.")
+        return username
+             
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({'class': 'form-control'})
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        fields = ['username', 'password1', 'password2']
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
         if commit:
             user.save()
         return user
