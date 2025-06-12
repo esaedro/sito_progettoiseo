@@ -15,6 +15,11 @@ class Articolo(models.Model):
     def __str__(self):
         return self.titolo
 
+#    def get_tags_list(self):
+#        if self.tags:
+#            return [tag.strip().replace('#', '') for tag in self.tags.split(',')]
+#        return []
+
     class Meta:
         db_table = 'articoli'
         ordering = ['-data_pubblicazione']  # Ordina per data di pubblicazione decrescente

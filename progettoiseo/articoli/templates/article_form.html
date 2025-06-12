@@ -12,28 +12,28 @@
       <div class="col-md-8">
         <!-- Titolo -->
         <div class="mb-3">
-          <label for="{{ form.title.id_for_label }}" class="form-label">
+          <label for="{{ form.titolo.id_for_label }}" class="form-label">
             <strong>Titolo:</strong>
           </label>
-          {{ form.title }}
-          {% if form.title.errors %}
+          {{ form.titolo }}
+          {% if form.titolo.errors %}
             <div class="text-danger">
-              {% for error in form.title.errors %}
+              {% for error in form.titolo.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
         </div>
 
-        <!-- Altri autori -->
+        <!-- Autori -->
         <div class="mb-3">
-          <label for="{{ form.other_authors.id_for_label }}" class="form-label">
-            <strong>Altri autori:</strong>
+          <label for="{{ form.autori.id_for_label }}" class="form-label">
+            <strong>Autori:</strong>
           </label>
-          {{ form.other_authors }}
-          {% if form.other_authors.errors %}
+          {{ form.autori }}
+          {% if form.autori.errors %}
             <div class="text-danger">
-              {% for error in form.other_authors.errors %}
+              {% for error in form.autori.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
@@ -42,13 +42,13 @@
 
         <!-- Tag -->
         <div class="mb-3">
-          <label for="{{ form.tags.id_for_label }}" class="form-label">
+          <label for="{{ form.tag.id_for_label }}" class="form-label">
             <strong>Tag: si scrivono con #</strong>
           </label>
-          {{ form.tags }}
-          {% if form.tags.errors %}
+          {{ form.tag }}
+          {% if form.tag.errors %}
             <div class="text-danger">
-              {% for error in form.tags.errors %}
+              {% for error in form.tag.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
@@ -57,13 +57,13 @@
 
         <!-- Immagine -->
         <div class="mb-3">
-          <label for="{{ form.image.id_for_label }}" class="form-label">
+          <label for="{{ form.immagine.id_for_label }}" class="form-label">
             <strong>Immagine: &lt;tasto per caricare un'immagine&gt;</strong>
           </label>
-          {{ form.image }}
-          {% if form.image.errors %}
+          {{ form.immagine }}
+          {% if form.immagine.errors %}
             <div class="text-danger">
-              {% for error in form.image.errors %}
+              {% for error in form.immagine.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
@@ -72,13 +72,13 @@
 
         <!-- Testo -->
         <div class="mb-4">
-          <label for="{{ form.content.id_for_label }}" class="form-label">
+          <label for="{{ form.testo.id_for_label }}" class="form-label">
             <strong>Testo:</strong>
           </label>
-          {{ form.content }}
-          {% if form.content.errors %}
+          {{ form.testo }}
+          {% if form.testo.errors %}
             <div class="text-danger">
-              {% for error in form.content.errors %}
+              {% for error in form.testo.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>

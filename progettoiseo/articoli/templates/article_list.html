@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layouts/base.html" %}
 {% block content %}
 <div class="container mt-4">
     <!-- Header con titolo e bottone per nuovo articolo -->
@@ -39,8 +39,8 @@
                 <div class="col-lg-6 col-xl-4 mb-4">
                     <div class="card h-100 shadow-sm article-card">
                         <!-- Immagine -->
-                        {% if article.image %}
-                            <img src="{{ article.image.url }}" class="card-img-top article-image" alt="{{ article.title }}">
+                        {% if article.immagine %}
+                            <img src="{{ article.immagine.url }}" class="card-img-top article-image" alt="{{ article.titolo }}">
                         {% else %}
                             <div class="card-img-top article-image-placeholder d-flex align-items-center justify-content-center bg-light">
                                 <i class="fas fa-image text-muted fa-3x"></i>
@@ -51,18 +51,18 @@
                             <!-- Titolo -->
                             <h5 class="card-title">
                                 <a href="{% url 'article-detail' article.pk %}" class="text-decoration-none">
-                                    {{ article.title|truncatechars:60 }}
+                                    {{ article.titolo|truncatechars:60 }}
                                 </a>
                             </h5>
 
                             <!-- Data -->
                             <p class="text-muted small mb-2">
                                 <i class="fas fa-calendar-alt me-1"></i>
-                                {{ article.created_at|date:"d M Y" }}
+                                {{ article.data_pubblicazione|date:"d M Y" }}
                             </p>
 
                             <!-- Tag -->
-                            {% if article.tags %}
+                            {% if article.tag %}
                                 <div class="mb-2">
                                     {% for tag in article.get_tags_list %}
                                         <span class="badge bg-secondary me-1">#{{ tag }}</span>
@@ -72,7 +72,7 @@
 
                             <!-- Estratto contenuto -->
                             <p class="card-text flex-grow-1">
-                                {{ article.content|truncatewords:20|striptags }}
+                                {{ article.testo|truncatewords:20|striptags }}
                             </p>
 
                             <!-- Azioni -->
