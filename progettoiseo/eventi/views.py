@@ -3,4 +3,4 @@
 from django.shortcuts import render
 
 def eventi_home(request):
-    return render(request, 'eventi/eventi_home.html')
+    return render(request, 'eventi.html')

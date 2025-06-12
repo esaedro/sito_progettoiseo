@@ -60,14 +60,27 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="{% url 'profilo' %}">Gestisci Profilo</a></li>
+                {% if perms.accounts.add_profiloutente %}
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <a href="{% url 'registrazione' %}" class="dropdown-item">
+                            <i class="fas fa-user-plus"></i> Registra nuovo utente
+                        </a>
+                    </li>
+                {% endif %}
+                {% if user.is_superuser %}
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                        <a href="{% url 'admin:index' %}" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Pagina di amministrazione
+                        </a>
+                    </li>
+                {% endif %}
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                    <form method="post" action="{% url 'logout' %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="dropdown-item logout-btn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </form>
+                    <a href="{% url 'logout' %}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 </li>
             </ul>
         </div>
