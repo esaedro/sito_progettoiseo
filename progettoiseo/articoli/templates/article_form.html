@@ -1,13 +1,131 @@
-<!-- Il forma si usa sia per la creazione che per la modifica di un articolo. -->
-
+<!-- Il form si usa sia per la creazione che per la modifica di un articolo. -->
 {% extends "layouts/base.html" %}
 {% block content %}
 <div class="container mt-4">
   <h2>{{ view.object.pk|yesno:"Edit Article,Add New Article" }}</h2>
-  <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Save</button>
-    <a href="{% url 'book-list' %}" class="btn btn-secondary">Cancel</a>
+  
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+      <!-- Colonna sinistra -->
+      <div class="col-md-8">
+        <!-- Titolo -->
+        <div class="mb-3">
+          <label for="{{ form.title.id_for_label }}" class="form-label">
+            <strong>Titolo:</strong>
+          </label>
+          {{ form.title }}
+          {% if form.title.errors %}
+            <div class="text-danger">
+              {% for error in form.title.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Altri autori -->
+        <div class="mb-3">
+          <label for="{{ form.other_authors.id_for_label }}" class="form-label">
+            <strong>Altri autori:</strong>
+          </label>
+          {{ form.other_authors }}
+          {% if form.other_authors.errors %}
+            <div class="text-danger">
+              {% for error in form.other_authors.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Tag -->
+        <div class="mb-3">
+          <label for="{{ form.tags.id_for_label }}" class="form-label">
+            <strong>Tag: si scrivono con #</strong>
+          </label>
+          {{ form.tags }}
+          {% if form.tags.errors %}
+            <div class="text-danger">
+              {% for error in form.tags.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Immagine -->
+        <div class="mb-3">
+          <label for="{{ form.image.id_for_label }}" class="form-label">
+            <strong>Immagine: &lt;tasto per caricare un'immagine&gt;</strong>
+          </label>
+          {{ form.image }}
+          {% if form.image.errors %}
+            <div class="text-danger">
+              {% for error in form.image.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Testo -->
+        <div class="mb-4">
+          <label for="{{ form.content.id_for_label }}" class="form-label">
+            <strong>Testo:</strong>
+          </label>
+          {{ form.content }}
+          {% if form.content.errors %}
+            <div class="text-danger">
+              {% for error in form.content.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Colonna destra - Pulsante Pubblica -->
+      <div class="col-md-4">
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary btn-lg px-4">
+            Pubblica
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pulsante Cancel nella parte inferiore -->
+    <div class="row mt-3">
+      <div class="col-12">
+        <a href="{% url 'book-list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </div>
   </form>
 </div>
+
+<style>
+/* Stili aggiuntivi per migliorare l'aspetto del form */
+.form-control, .form-select {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+}
+
+textarea.form-control {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.form-label {
+    font-weight: normal;
+    margin-bottom: 5px;
+}
+</style>
 {% endblock %}
