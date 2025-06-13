@@ -2,6 +2,7 @@ from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from .models import ProfiloUtente
+from calendar import firstweekday
 
 class ModificaPasswordForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
@@ -15,6 +16,9 @@ class ModificaPasswordForm(PasswordChangeForm):
         fields = ['old_password', 'new_password1', 'new_password2']
 
 class ModificaProfiloForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    first_name = forms.CharField(max_length=150, required=False)
+    last_name = forms.CharField(max_length=150, required=False)
     immagine_profilo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'accept': 'image/*'}))
     email = forms.EmailField(required=False)
     numero_tessera = forms.CharField(max_length=20, required=True, disabled=True)
@@ -24,8 +28,14 @@ class ModificaProfiloForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.user:
             self.fields['email'].initial = self.instance.user.email if self.instance.user.email else ''
+            self.fields['username'].initial = self.instance.user.username
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
 
         # Aggiungi classi Bootstrap
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
         self.fields['immagine_profilo'].widget.attrs.update({'class': 'form-control'})
         self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['numero_tessera'].widget.attrs.update({'class': 'form-control'})
@@ -37,7 +47,13 @@ class ModificaProfiloForm(forms.ModelForm):
         profilo = super().save(commit=False)
         if self.cleaned_data['email']:
             profilo.user.email = self.cleaned_data['email']
-            profilo.user.save()
+        if self.cleaned_data['username']:
+            profilo.user.username = self.cleaned_data['username']
+        if self.cleaned_data['first_name']:
+            profilo.user.first_name = self.cleaned_data['first_name']
+        if self.cleaned_data['last_name']:
+            profilo.user.last_name = self.cleaned_data['last_name']
+        profilo.user.save()
 
 
 
@@ -47,7 +63,7 @@ class ModificaProfiloForm(forms.ModelForm):
 
     class Meta:
         model = ProfiloUtente
-        fields = ['immagine_profilo', 'email', 'numero_tessera', 'data_tesseramento']
+        fields = ['username', 'immagine_profilo', 'email', 'numero_tessera', 'data_tesseramento']
 
 class RegistrazioneForm(UserCreationForm):
     def clean_username(self):

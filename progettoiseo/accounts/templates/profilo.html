@@ -23,14 +23,12 @@
                 {% if profilo_utente.immagine_profilo %}
                 <div class="text-center mb-3">
                     <img src="{{ profilo_utente.immagine_profilo.url|default:'/media/accounts/foto_profilo_base.png' }}" alt="Foto profilo attuale"
-                         class="rounded-circle" width="100" height="100" onerror="this.src='/media/accounts/foto_profilo_base.png'">
-                    <p class="text-muted mt-2">Foto profilo attuale</p>
+                         class="rounded-circle" width="200" height="200" onerror="this.src='/media/accounts/foto_profilo_base.png'">
                 </div>
                 {% else %}
                 <div class="text-center mb-3">
                     <img src="/media/accounts/foto_profilo_base.png" alt="Foto profilo attuale"
-                         class="rounded-circle" width="100" height="100">
-                    <p class="text-muted mt-2">Foto profilo attuale</p>
+                         class="rounded-circle" width="200" height="200">
                 </div>
                 {% endif %}
 
@@ -61,6 +59,16 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Username
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
                         <label for="{{ form.email.id_for_label }}" class="form-label">
                             Email
                         </label>
@@ -71,11 +79,23 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">
-                            Password
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            Nome
                         </label>
-                        <!-- <a href="{% url 'password_change' %}" class="btn btn-primary">Cambia Password</a> -->
-                        <a href="{% url 'modifica-password' %}" class="btn btn-primary">Cambia Password</a>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            Cognome
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -102,13 +122,16 @@
                         {% endif %}
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Salva Modifiche
-                        </button>
-                        <a href="{% url 'home' %}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Annulla
-                        </a>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'modifica-password' %}" class="btn btn-primary">Cambia Password</a>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salva Modifiche
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annulla
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
