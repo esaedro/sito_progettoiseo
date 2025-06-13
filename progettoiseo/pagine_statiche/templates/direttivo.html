@@ -1,6 +1,56 @@
 {% extends "layouts/base.html" %} {% block title %} progettoiseo-direttivo {% endblock %}
+
 {% block content %}
-<h1 class="text-center">L'attuale direttivo</h1>
-<div class="container"> 
+<h1 class="text-center mb-4">Il Direttivo</h1>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <p class="text-center mb-5">
+                Il direttivo di Progettoiseo è composto da 12 membri eletti che si occupano della gestione
+                e dell'organizzazione delle attività dell'associazione. Qui di seguito puoi trovare
+                l'elenco dei membri attualmente in carica.
+            </p>
+        </div>
+    </div>
+
+    {% if membri_direttivo %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="list-group">
+                    {% for membro in membri_direttivo %}
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="me-3">
+                                {% if membro.profile.immagine_profilo %}
+                                    <img src="{{ membro.profile.immagine_profilo.url }}"
+                                         alt="Foto di {{ membro.first_name }} {{ membro.last_name }}"
+                                         class="rounded-circle"
+                                         style="width: 60px; height: 60px; object-fit: cover;"
+                                         onerror="this.src='/media/accounts/foto_profilo_base.png';">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                                         style="width: 60px; height: 60px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">{{ membro.first_name }} {{ membro.last_name }}</h5>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="alert alert-info text-center">
+                    <h4>Nessun membro del direttivo trovato</h4>
+                    <p class="mb-0">Al momento non ci sono membri assegnati al gruppo "Direttivo".</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

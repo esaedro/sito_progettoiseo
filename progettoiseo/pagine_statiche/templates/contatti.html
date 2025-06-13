@@ -1,19 +1,115 @@
 {% extends "layouts/base.html" %} {% block title %} progettoiseo-contatti {% endblock %}
+
 {% block content %}
-<h1 class="text-center">Contatti e social</h1>
-<div class="container"> 
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Contatti</h2>
-            <p>Indirizzo: Via Roma, 1 - 00100 Roma</p>
-            <p>Email: info@progettoiseo.com</p>
-            <p>Telefono: +39 06 12345678</p>
+<h1 class="text-center mb-4">Contatti e Social</h1>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <p class="text-center mb-5">
+                Resta in contatto con noi! Puoi trovarci sui nostri canali social o contattarci direttamente.
+            </p>
         </div>
-        <div class="col-md-6">
-            <h2>Social</h2>
-            <a href="https://www.facebook.com/progettoiseo" target="_blank"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://www.instagram.com/progettoiseo" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.twitter.com/progettoiseo" target="_blank"><i class="fab fa-twitter"></i></a>
+    </div>
+
+    <div class="row">
+        <!-- Sezione Contatti -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-envelope me-2 text-primary"></i>
+                        Contatti Diretti
+                    </h3>
+
+                    <div class="mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <strong>Indirizzo:</strong><br>
+                        <span class="ms-4">Via Roma, 1 - 00100 Roma</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <i class="fas fa-envelope text-primary me-2"></i>
+                        <strong>Email:</strong><br>
+                        <span class="ms-4">
+                            <a href="mailto:info@progettoiseo.it" class="text-decoration-none">
+                                info@progettoiseo.it
+                            </a>
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <i class="fas fa-phone text-success me-2"></i>
+                        <strong>Telefono:</strong><br>
+                        <span class="ms-4">+39 06 12345678</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sezione Social -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-share-alt me-2 text-success"></i>
+                        Seguici sui Social
+                    </h3>
+
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <a href="https://www.facebook.com/progettoiseo" target="_blank"
+                               class="btn w-100 py-3"
+                               style="border: 2px solid #1877F2; color: #1877F2; transition: all 0.3s;"
+                               onmouseover="this.style.backgroundColor='#1877F2'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1877F2';">
+                                <i class="fab fa-facebook-f fa-2x mb-2"></i><br>
+                                <small>Facebook</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="https://www.instagram.com/progettoiseo" target="_blank"
+                               class="btn w-100 py-3"
+                               style="border: 2px solid #E4405F; color: #E4405F; transition: all 0.3s;"
+                               onmouseover="this.style.backgroundColor='#E4405F'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor='transparent'; this.style.color='#E4405F';">
+                                <i class="fab fa-instagram fa-2x mb-2"></i><br>
+                                <small>Instagram</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="https://wa.me/393912345678" target="_blank"
+                               class="btn w-100 py-3"
+                               style="border: 2px solid #25D366; color: #25D366; transition: all 0.3s;"
+                               onmouseover="this.style.backgroundColor='#25D366'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor='transparent'; this.style.color='#25D366';">
+                                <i class="fab fa-whatsapp fa-2x mb-2"></i><br>
+                                <small>WhatsApp</small>
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="https://t.me/progettoiseo" target="_blank"
+                               class="btn w-100 py-3"
+                               style="border: 2px solid #0088CC; color: #0088CC; transition: all 0.3s;"
+                               onmouseover="this.style.backgroundColor='#0088CC'; this.style.color='white';"
+                               onmouseout="this.style.backgroundColor='transparent'; this.style.color='#0088CC';">
+                                <i class="fab fa-telegram-plane fa-2x mb-2"></i><br>
+                                <small>Telegram</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione aggiuntiva con orari o info -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="alert alert-light text-center">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong>Orari di contatto:</strong> Dal lunedì al venerdì, 9:00 - 18:00
+            </div>
         </div>
     </div>
 </div>

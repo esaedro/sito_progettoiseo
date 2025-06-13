@@ -72,7 +72,7 @@ class RegistrazioneForm(UserCreationForm):
             if User.objects.filter(email=username).exists():
                 raise forms.ValidationError("Questa email è già registrata.")
         elif User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Questo username è già in uso.")
+            raise forms.ValidationError("Questo username è già registrato.")
         return username
 
 
