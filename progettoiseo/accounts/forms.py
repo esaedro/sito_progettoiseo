@@ -24,18 +24,23 @@ class ModificaProfiloForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.user:
             self.fields['email'].initial = self.instance.user.email if self.instance.user.email else ''
-        
+
         # Aggiungi classi Bootstrap
         self.fields['immagine_profilo'].widget.attrs.update({'class': 'form-control'})
         self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['numero_tessera'].widget.attrs.update({'class': 'form-control'})
         self.fields['data_tesseramento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
 
+
+
     def save(self, commit=True):
         profilo = super().save(commit=False)
         if self.cleaned_data['email']:
             profilo.user.email = self.cleaned_data['email']
             profilo.user.save()
+
+
+
         if commit:
             profilo.save()
         return profilo
@@ -53,7 +58,7 @@ class RegistrazioneForm(UserCreationForm):
         elif User.objects.filter(username=username).exists():
             raise forms.ValidationError("Questo username è già in uso.")
         return username
-             
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -73,7 +78,7 @@ class RegistrazioneForm(UserCreationForm):
 
 class LoginForm(forms.Form):
     username = forms.CharField(
-        max_length=150, 
+        max_length=150,
         label="Username o Email",
         help_text="Inserisci il tuo username o indirizzo email",
         widget=forms.TextInput(attrs={'class': 'form-control'})

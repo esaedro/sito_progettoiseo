@@ -8,6 +8,8 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from .models import ProfiloUtente
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 # Create your views here.
 
 def custom_login(request):
@@ -50,7 +52,7 @@ def registrazione(request):
         if form.is_valid():
             # Il signal si occupa di creare e inizializzare automaticamente il profilo
             user = form.save()
-            
+
             messages.success(request, f'Registrazione completata con successo! Benvenuto {user.username}!')
             return redirect('registrazione')
         else:
@@ -66,6 +68,7 @@ def modifica_profilo(request):
         form = ModificaProfiloForm(request.POST, request.FILES, instance=profilo_utente)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Profilo aggiornato con successo!')
             return redirect('profilo')
         else:
             print(f"Errori form: {form.errors}")  # DEBUG
@@ -88,3 +91,35 @@ def modifica_password(request):
     else:
         form = ModificaPasswordForm(request.user)
     return render(request, 'registration/password_change.html', {'form': form})
+
+@login_required
+@require_POST
+def rimuovi_foto_profilo(request):
+    try:
+        profilo_utente = ProfiloUtente.objects.get(user=request.user)
+        if profilo_utente.immagine_profilo:
+            # Elimina il file fisico
+            profilo_utente.immagine_profilo.delete(save=False)
+            # Rimuovi il riferimento dal database
+            profilo_utente.immagine_profilo = None
+            profilo_utente.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Foto profilo rimossa con successo!'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nessuna foto profilo da rimuovere.'
+            })
+    except ProfiloUtente.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Profilo utente non trovato.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Errore durante la rimozione: {str(e)}'
+        })

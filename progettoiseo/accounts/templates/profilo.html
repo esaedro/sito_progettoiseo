@@ -1,7 +1,7 @@
-{% extends "layouts/base.html" %} 
+{% extends "layouts/base.html" %}
 {% load l10n %}
 
-{% block title %} Gestisci Profilo {% endblock %} 
+{% block title %} Gestisci Profilo {% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -19,24 +19,24 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-                
+
                 {% if profilo_utente.immagine_profilo %}
                 <div class="text-center mb-3">
-                    <img src="{{ profilo_utente.immagine_profilo.url }}" alt="Foto profilo attuale" 
-                         class="rounded-circle" width="100" height="100">
+                    <img src="{{ profilo_utente.immagine_profilo.url|default:'/media/accounts/foto_profilo_base.png' }}" alt="Foto profilo attuale"
+                         class="rounded-circle" width="100" height="100" onerror="this.src='/media/accounts/foto_profilo_base.png'">
                     <p class="text-muted mt-2">Foto profilo attuale</p>
                 </div>
                 {% else %}
                 <div class="text-center mb-3">
-                    <img src="/media/accounts/foto_profilo_base.png" alt="Foto profilo attuale" 
+                    <img src="/media/accounts/foto_profilo_base.png" alt="Foto profilo attuale"
                          class="rounded-circle" width="100" height="100">
                     <p class="text-muted mt-2">Foto profilo attuale</p>
                 </div>
                 {% endif %}
-                
+
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.immagine_profilo.id_for_label }}" class="form-label">
                             Immagine Profilo
@@ -45,8 +45,21 @@
                         {% if form.immagine_profilo.errors %}
                             <div class="text-danger">{{ form.immagine_profilo.errors }}</div>
                         {% endif %}
+
+                        <!-- Pulsante per rimuovere l'immagine -->
+                        {% if profilo_utente.immagine_profilo %}
+                            <div class="mt-2">
+                                <button type="button" id="rimuovi-foto-btn" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confermaRimozioneModal">
+                                    <i class="fas fa-trash me-1"></i>
+                                    Rimuovi Foto Profilo
+                                </button>
+                                <small class="form-text text-muted d-block mt-1">
+                                    Clicca per rimuovere definitivamente la foto profilo attuale
+                                </small>
+                            </div>
+                        {% endif %}
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.email.id_for_label }}" class="form-label">
                             Email
@@ -56,7 +69,7 @@
                             <div class="text-danger">{{ form.email.errors }}</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.password.id_for_label }}" class="form-label">
                             Password
@@ -64,7 +77,7 @@
                         <!-- <a href="{% url 'password_change' %}" class="btn btn-primary">Cambia Password</a> -->
                         <a href="{% url 'modifica-password' %}" class="btn btn-primary">Cambia Password</a>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.numero_tessera.id_for_label }}" class="form-label">
                             Numero Tessera
@@ -76,7 +89,7 @@
                             <div class="text-danger">{{ form.numero_tessera.errors }}</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="{{ form.data_tesseramento.id_for_label }}" class="form-label">
                             Data Tesseramento
@@ -88,7 +101,7 @@
                             <div class="text-danger">{{ form.data_tesseramento.errors }}</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Salva Modifiche
@@ -102,4 +115,156 @@
         </div>
     </div>
 </div>
+
+<!-- Modal di conferma rimozione foto profilo -->
+<div class="modal fade" id="confermaRimozioneModal" tabindex="-1" aria-labelledby="confermaRimozioneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confermaRimozioneModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Conferma Rimozione
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-user-times display-4 text-danger"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-2">Sei sicuro di voler rimuovere la foto profilo?</h6>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Questa azione non può essere annullata. La foto profilo verrà eliminata definitivamente e sostituita con l'immagine predefinita.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Annulla
+                </button>
+                <button type="button" id="conferma-rimozione-btn" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>
+                    Rimuovi Definitivamente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rimuoviFotoBtn = document.getElementById('rimuovi-foto-btn');
+
+    // Gestione del pulsante di conferma nel modal
+    const confermaRimozioneBtn = document.getElementById('conferma-rimozione-btn');
+    const modal = document.getElementById('confermaRimozioneModal');
+    const modalInstance = new bootstrap.Modal(modal);
+
+    if (confermaRimozioneBtn) {
+        confermaRimozioneBtn.addEventListener('click', function() {
+            // Disabilita il pulsante durante la richiesta
+            confermaRimozioneBtn.disabled = true;
+            confermaRimozioneBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rimozione...';
+
+            // Crea la richiesta AJAX
+            fetch('{% url "rimuovi_foto_profilo" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Chiudi il modal
+                    modalInstance.hide();
+
+                    // Mostra messaggio di successo
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        ${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+
+                    // Inserisci l'alert all'inizio del card-body
+                    const cardBody = document.querySelector('.card-body');
+                    cardBody.insertBefore(alertDiv, cardBody.firstChild);
+
+                    // Aggiorna l'immagine profilo
+                    const imgElement = document.querySelector('img[alt="Foto profilo attuale"]');
+                    if (imgElement) {
+                        imgElement.src = '/media/accounts/foto_profilo_base.png';
+                    }
+
+                    // Rimuovi il pulsante di eliminazione
+                    if (rimuoviFotoBtn) {
+                        rimuoviFotoBtn.parentElement.remove();
+                    }
+
+                    // Auto-dismiss dell'alert dopo 5 secondi
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) {
+                            const bsAlert = new bootstrap.Alert(alertDiv);
+                            bsAlert.close();
+                        }
+                    }, 5000);
+                } else {
+                    // Mostra messaggio di errore nel modal
+                    const modalBody = modal.querySelector('.modal-body');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger mt-3';
+                    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${data.message}`;
+                    modalBody.appendChild(errorDiv);
+
+                    // Ripristina il pulsante
+                    confermaRimozioneBtn.disabled = false;
+                    confermaRimozioneBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Rimuovi Definitivamente';
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+
+                // Mostra messaggio di errore nel modal
+                const modalBody = modal.querySelector('.modal-body');
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger mt-3';
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Si è verificato un errore durante la rimozione della foto.';
+                modalBody.appendChild(errorDiv);
+
+                // Ripristina il pulsante
+                confermaRimozioneBtn.disabled = false;
+                confermaRimozioneBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Rimuovi Definitivamente';
+            });
+        });
+
+        // Reset del modal quando viene chiuso
+        modal.addEventListener('hidden.bs.modal', function () {
+            // Ripristina il pulsante di conferma
+            confermaRimozioneBtn.disabled = false;
+            confermaRimozioneBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Rimuovi Definitivamente';
+
+            // Rimuovi eventuali messaggi di errore
+            const errorAlerts = modal.querySelectorAll('.alert-danger');
+            errorAlerts.forEach(alert => alert.remove());
+        });
+    }
+
+    // Auto-dismiss degli alert dopo 5 secondi
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+});
+</script>
+
 {% endblock %}

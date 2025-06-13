@@ -1,6 +1,7 @@
 import os
 
 # TODO: sistemare gli avvisi javascript che non compaiono alla creazione degli utenti, ma che compaiono dopo (tipo al logout o al login)
+# TODO: sistemare il fatto di poter togliere l'immagine di profilo impostando quella di default (impostare quella di default anche quando non si trova l'immagine effettiva)
 
 """
 Django settings for progettoiseo project.
@@ -86,10 +87,10 @@ DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'progettoiseo',
-        'USER': 'root',  # Cambia con il tuo nome utente del database
-        'PASSWORD':'root',  # Cambia con la tua password
+        'USER': 'django',
+        'PASSWORD':'django',
         'HOST': '127.0.0.1',
-        'PORT': '3307',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
