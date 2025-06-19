@@ -2,10 +2,12 @@
 {% block content %}
 <div class="container mt-4">
   <h2>Confirm Delete</h2>
-  <p>Are you sure you want to delete "{{ object.title }} "?</p>
+  <p>Are you sure you want to delete "{{ object.titolo }} "?</p>
   <form method="post">{% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, delete</button>
     <a href="{% url 'article-list' %}" class="btn btn-secondary">Cancel</a>
   </form>
 </div>
 {% endblock %}
+
+<!-- TODO: cancellare?? -->

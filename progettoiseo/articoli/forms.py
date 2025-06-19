@@ -1,0 +1,95 @@
+from django import forms
+from .models import Articolo
+from accounts.models import ProfiloUtente
+
+class InserimentoArticoloForm(forms.ModelForm):
+    titolo = forms.CharField(
+        label="Titolo",
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text="Inserisci il titolo dell'articolo.",
+    )
+    
+    autori = forms.ModelMultipleChoiceField(
+        queryset=ProfiloUtente.objects.all(),
+        label="Autori",
+        widget=forms.CheckboxSelectMultiple,
+        help_text="Seleziona gli autori dell'articolo.",
+        required=False
+    )
+
+    tag = forms.CharField(
+        label="Tag",
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text="Inserisci i tag dell'articolo, separati da spazio.",
+    )
+    immagine = forms.ImageField(
+        label="Immagine",
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+        help_text="Carica un'immagine per l'articolo (opzionale).",
+    )
+    testo = forms.CharField(
+        label="Testo",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        help_text="Inserisci il testo dell'articolo.",
+    ) 
+
+
+    def __init__(self, *args, **kwargs):    
+        super().__init__(*args, **kwargs)
+
+        # Imposta le scelte per gli autori
+        #self.fields['autori'].queryset = ProfiloUtente.objects.all()
+        
+        self.fields['autori'].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username}"
+
+        # Se l'istanza esiste, preseleziona i valori correnti
+        if self.instance and self.instance.pk:
+            self.fields['autori'].initial = self.instance.autori.all()
+            self.fields['titolo'].initial = self.instance.titolo
+            self.fields['tag'].initial = self.instance.tag
+            self.fields['immagine'].initial = self.instance.immagine
+            self.fields['testo'].initial = self.instance.testo
+        
+        # Aggiungi classi CSS per migliorare l'aspetto del form
+        self.fields['titolo'].widget.attrs.update({'class': 'form-control'})
+        self.fields['autori'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['tag'].widget.attrs.update({'class': 'form-control'})
+        self.fields['immagine'].widget.attrs.update({'class': 'form-control-file'})
+        self.fields['testo'].widget.attrs.update({'class': 'form-control', 'rows': 5})
+
+        def save(self, commit=True):
+            articolo = super().save(commit=False)
+            if self.cleaned_data['titolo']:
+                articolo.titolo = self.cleaned_data['titolo']
+            if self.cleaned_data['autori']:
+                articolo.autori.set(ProfiloUtente.objects.filter(pk__in=self.cleaned_data['autori']))
+            if self.cleaned_data['tag']:
+                tag_string = self.cleaned_data['tag']
+                tag_list = [t.lstrip('#') for t in tag_string.split() if t.strip()]
+                articolo.tag = ','.join(tag_list)
+                print(f"Tag salvati: {articolo.tag}")
+                #TODO: CHECK SE FUNZIONA
+            if self.cleaned_data['immagine']:
+                articolo.immagine = self.cleaned_data['immagine']
+            if self.cleaned_data['testo']:
+                articolo.testo = self.cleaned_data['testo']
+            articolo.save()
+
+            if commit:
+                articolo.save()
+                # Salva la relazione many-to-many
+                articolo.autori.set(self.cleaned_data['autori'])
+
+            return articolo
+    
+    class Meta:
+        model = Articolo
+        fields = ['titolo', 'autori', 'tag', 'immagine', 'testo']
+
+#TODO: L'utente che sta creando l'articolo dovrebbe essere automaticamente aggiunto come autore
+#Inoltre la lista degli autori selezionabili deve contenere solo membri del direttivo
+#e non tutti gli utenti registrati. Per fare questo, si può filtrare il queryset

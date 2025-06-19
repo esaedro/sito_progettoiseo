@@ -2,7 +2,7 @@
 {% extends "layouts/base.html" %}
 {% block content %}
 <div class="container mt-4">
-  <h2>{{ view.object.pk|yesno:"Edit Article,Add New Article" }}</h2>
+  <h2>{{ view.object.pk|yesno:"Modifica articolo,Crea un nuovo articolo" }}</h2>
   
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
@@ -27,10 +27,23 @@
 
         <!-- Autori -->
         <div class="mb-3">
-          <label for="{{ form.autori.id_for_label }}" class="form-label">
+          <label class="form-label">
             <strong>Autori:</strong>
           </label>
-          {{ form.autori }}
+          <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+            <div class="row">
+              {% for choice in form.autori %}
+                <div class="col-md-4 col-sm-6 mb-2">
+                  <div class="form-check">
+                    {{ choice.tag }}
+                    <label class="form-check-label" for="{{ choice.id_for_label }}">
+                      {{ choice.choice_label }}
+                    </label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
           {% if form.autori.errors %}
             <div class="text-danger">
               {% for error in form.autori.errors %}
@@ -99,7 +112,7 @@
     <!-- Pulsante Cancel nella parte inferiore -->
     <div class="row mt-3">
       <div class="col-12">
-        <a href="{% url 'book-list' %}" class="btn btn-secondary">Cancel</a>
+        <a href="{% url 'article-list' %}" class="btn btn-secondary">Cancel</a>
       </div>
     </div>
   </form>

@@ -1,10 +1,9 @@
 from importlib.resources import contents
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from .forms import ModificaProfiloForm, ModificaPasswordForm, RegistrazioneForm, LoginForm
-from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from .models import ProfiloUtente

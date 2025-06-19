@@ -13,6 +13,9 @@ class ProfiloUtente(models.Model):
 
     objects = models.Manager()
 
+    def __str__(self):
+        return f"{self.user.username}" 
+
     @classmethod
     def get_profilo_utente(cls, user) -> 'ProfiloUtente':
         return cls.objects.get(user=user)

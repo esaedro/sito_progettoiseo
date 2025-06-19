@@ -12,7 +12,6 @@
             </a>
         </div>
     </div>
-
     <!-- Filtro per tag -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -23,7 +22,7 @@
                         <option value="">Tutti i tag</option>
                         {% for tag in available_tags %}
                             <option value="{{ tag }}" {% if request.GET.tag == tag %}selected{% endif %}>
-                                #{{ tag }}
+                                {{ tag }}
                             </option>
                         {% endfor %}
                     </select>
@@ -84,9 +83,10 @@
                                     <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary btn-sm">
                                         <i class="fas fa-edit me-1"></i>Modifica
                                     </a>
-                                    <a href="{% url 'article-delete' article.pk %}" class="btn btn-outline-danger btn-sm" 
-                                       onclick="return confirm('Sei sicuro di voler eliminare questo articolo?')">
-                                        <i class="fas fa-trash me-1"></i>Elimina
+                                    <a href="#" 
+                                        class="btn btn-outline-danger btn-sm"
+                                        data-modal="delete">
+                                         <i class="fas fa-trash me-1"></i>Elimina
                                     </a>
                                 </div>
                             </div>
@@ -158,6 +158,103 @@
         </div>
     {% endif %}
 </div>
+<!-- Modal Eliminazione Articolo -->
+<div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-labelledby="deleteArticleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteArticleModalLabel">
+                    Conferma eliminazione
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare l'articolo <strong id="modal-article-title"></strong>?
+                <p class="text-danger mt-2 mb-0"><small>Questa azione non può essere annullata.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <a href="#" id="modal-delete-btn" class="btn btn-danger">Elimina</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let deleteUrl = '';
+    let cardToRemove = null;
+    // Selettori per tutti i bottoni elimina
+    document.querySelectorAll('.btn-outline-danger').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            // Solo se il bottone ha l'attributo data-modal
+            if (btn.hasAttribute('data-modal')) {
+                e.preventDefault();
+                const articleTitle = btn.closest('.card').querySelector('.card-title a').textContent.trim();
+                deleteUrl = btn.getAttribute('href');
+                cardToRemove = btn.closest('.col-lg-6, .col-xl-4, .mb-4');
+                document.getElementById('modal-article-title').textContent = articleTitle;
+                document.getElementById('modal-delete-btn').setAttribute('href', deleteUrl);
+                var modal = new bootstrap.Modal(document.getElementById('deleteArticleModal'));
+                modal.show();
+            }
+        });
+    });
+
+    // Gestione click su "Elimina" nel modal
+    document.getElementById('modal-delete-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const csrftoken = getCookie('csrftoken');
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Chiudi il modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById('deleteArticleModal'));
+                modal.hide();
+                // Rimuovi la card dell'articolo dalla lista
+                if (cardToRemove) {
+                    cardToRemove.remove();
+                } else {
+                    // fallback: ricarica la pagina
+                    location.reload();
+                }
+            } else {
+                alert('Errore durante l\'eliminazione.');
+            }
+        })
+        .catch(() => {
+            alert('Errore di rete.');
+        });
+    });
+
+    // Funzione per ottenere il CSRF token dai cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+
+
+<!-- TODO: Eliminazione immagine
+TODO: Bottoni modifica/elimina visualizzabili solo se l'utente ha i permessi -->
 
 <style>
 .article-card {

@@ -41,8 +41,6 @@ class ModificaProfiloForm(forms.ModelForm):
         self.fields['numero_tessera'].widget.attrs.update({'class': 'form-control'})
         self.fields['data_tesseramento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
 
-
-
     def save(self, commit=True):
         profilo = super().save(commit=False)
         if self.cleaned_data['email']:
@@ -54,8 +52,6 @@ class ModificaProfiloForm(forms.ModelForm):
         if self.cleaned_data['last_name']:
             profilo.user.last_name = self.cleaned_data['last_name']
         profilo.user.save()
-
-
 
         if commit:
             profilo.save()

@@ -88,22 +88,72 @@
                     </a>
                 {% endif %}
                 {% if perms.articoli.delete_articolo %}
-                    <a href="{% url 'article-delete' article.pk %}" 
-                       class="btn btn-outline-danger"
-                       onclick="return confirm('Sei sicuro di voler eliminare questo articolo?')">
-                        <i class="fas fa-trash me-1"></i>Elimina
+                    <a href="#" 
+                        class="btn btn-outline-danger"
+                        data-modal="delete">
+                         <i class="fas fa-trash me-1"></i>Elimina
                     </a>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+<!-- Modal Eliminazione Articolo -->
+<div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-labelledby="deleteArticleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteArticleModalLabel">
+                    Conferma eliminazione
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare l'articolo <strong id="modal-article-title">{{ article.titolo }}</strong>?
+                <p class="text-danger mt-2 mb-0"><small>Questa azione non può essere annullata.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form id="delete-article-form" method="post" action="{% url 'article-delete' article.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostra il modal quando si clicca su "Elimina"
+    const deleteBtn = document.querySelector('[data-modal="delete"]');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var modal = new bootstrap.Modal(document.getElementById('deleteArticleModal'));
+            modal.show();
+        });
+    }
+});
+</script>
+
+<!-- #TODO: visualizzazione autori -->
+<!--  TODO: se non c'è l'immagine evitare di mostrare il placeholder di immagine vuota
+  se non c'è non si mostra il div, bootrstrap dovrebbe fixare spazi -->
 <style>
 .article-title {
     color: #2c3e50;
     font-weight: 700;
     line-height: 1.2;
+    max-width: 100%;
+    word-break: break-word;
+    white-space: normal;
+}
+
+@media (min-width: 992px) {
+    .article-title {
+        max-width: 90%;
+    }
 }
 
 .article-meta {
