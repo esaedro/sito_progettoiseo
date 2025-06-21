@@ -27,10 +27,13 @@
                             <i class="fas fa-calendar-alt text-muted me-2"></i>
                             <strong>Data:</strong> {{ article.data_pubblicazione|date:"d F Y" }}
                         </p>
-                        {% if article.autori %}
+                        {% if article.autori.all %}
                             <p class="mb-0">
                                 <i class="fas fa-users text-muted me-2"></i>
-                                <strong>Autori:</strong> {{ article.autori }}
+                                <strong>Autori:</strong>
+                                {% for autore in article.autori.all %}
+                                    {{ autore }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
                             </p>
                         {% endif %}
                     </div>
@@ -55,13 +58,6 @@
                     <img src="{{ article.immagine.url }}" 
                          alt="{{ article.titolo }}" 
                          class="img-fluid rounded shadow article-detail-image">
-                {% else %}
-                    <div class="article-image-placeholder rounded shadow d-flex align-items-center justify-content-center">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-image fa-3x mb-2"></i>
-                            <p class="mb-0">Immagine</p>
-                        </div>
-                    </div>
                 {% endif %}
             </div>
         </div>
@@ -137,9 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- #TODO: visualizzazione autori -->
-<!--  TODO: se non c'è l'immagine evitare di mostrare il placeholder di immagine vuota
-  se non c'è non si mostra il div, bootrstrap dovrebbe fixare spazi -->
+<!-- #TODO - DONE: visualizzazione autori -->
+
 <style>
 .article-title {
     color: #2c3e50;
@@ -190,6 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
     line-height: 1.7;
     color: #333;
     text-align: justify;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .article-text p {

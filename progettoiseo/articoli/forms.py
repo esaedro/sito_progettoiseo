@@ -38,12 +38,17 @@ class InserimentoArticoloForm(forms.ModelForm):
     ) 
 
 
-    def __init__(self, *args, **kwargs):    
+    def __init__(self, *args, user=None, **kwargs):    
         super().__init__(*args, **kwargs)
-
-        # Imposta le scelte per gli autori
-        #self.fields['autori'].queryset = ProfiloUtente.objects.all()
-        
+        self.user = user
+        # Filtra gli autori: solo membri del gruppo Direttivo
+        from django.contrib.auth.models import Group
+        try:
+            gruppo_direttivo = Group.objects.get(name='Direttivo')
+            direttivo_users = gruppo_direttivo.user_set.all()
+            self.fields['autori'].queryset = ProfiloUtente.objects.filter(user__in=direttivo_users)
+        except Group.DoesNotExist:
+            self.fields['autori'].queryset = ProfiloUtente.objects.none()
         self.fields['autori'].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username}"
 
         # Se l'istanza esiste, preseleziona i valori correnti
@@ -61,35 +66,34 @@ class InserimentoArticoloForm(forms.ModelForm):
         self.fields['immagine'].widget.attrs.update({'class': 'form-control-file'})
         self.fields['testo'].widget.attrs.update({'class': 'form-control', 'rows': 5})
 
-        def save(self, commit=True):
-            articolo = super().save(commit=False)
-            if self.cleaned_data['titolo']:
-                articolo.titolo = self.cleaned_data['titolo']
-            if self.cleaned_data['autori']:
-                articolo.autori.set(ProfiloUtente.objects.filter(pk__in=self.cleaned_data['autori']))
-            if self.cleaned_data['tag']:
-                tag_string = self.cleaned_data['tag']
-                tag_list = [t.lstrip('#') for t in tag_string.split() if t.strip()]
-                articolo.tag = ','.join(tag_list)
-                print(f"Tag salvati: {articolo.tag}")
-                #TODO: CHECK SE FUNZIONA
-            if self.cleaned_data['immagine']:
-                articolo.immagine = self.cleaned_data['immagine']
-            if self.cleaned_data['testo']:
-                articolo.testo = self.cleaned_data['testo']
-            articolo.save()
+    def save(self, commit=True):
+        articolo = super().save(commit=False)
+        if self.cleaned_data['titolo']:
+            articolo.titolo = self.cleaned_data['titolo']
+        if self.cleaned_data['tag']:
+            tag_string = self.cleaned_data['tag']
+            tag_list = [t.lstrip('#') for t in tag_string.split() if t.strip()]
+            articolo.tag = ' '.join(tag_list)
+        if self.cleaned_data['immagine']:
+            articolo.immagine = self.cleaned_data['immagine']
+        if self.cleaned_data['testo']:
+            articolo.testo = self.cleaned_data['testo']
+        articolo.save()  # Salva sempre prima di gestire M2M
 
-            if commit:
-                articolo.save()
-                # Salva la relazione many-to-many
-                articolo.autori.set(self.cleaned_data['autori'])
+        # Gestione autori: prendi quelli selezionati e aggiungi sempre l'utente corrente
+        autori = list(self.cleaned_data.get('autori', [])) if self.cleaned_data.get('autori') else []
+        if self.user is not None:
+            profilo_utente, _ = ProfiloUtente.objects.get_or_create(user=self.user)
+            if profilo_utente not in autori:
+                autori.append(profilo_utente)
+        articolo.autori.set(autori)
 
-            return articolo
+        return articolo
     
     class Meta:
         model = Articolo
         fields = ['titolo', 'autori', 'tag', 'immagine', 'testo']
 
-#TODO: L'utente che sta creando l'articolo dovrebbe essere automaticamente aggiunto come autore
+#TODO- DONE?: L'utente che sta creando l'articolo dovrebbe essere automaticamente aggiunto come autore
 #Inoltre la lista degli autori selezionabili deve contenere solo membri del direttivo
 #e non tutti gli utenti registrati. Per fare questo, si può filtrare il queryset

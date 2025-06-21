@@ -26,14 +26,32 @@ class Articolo(models.Model):
             autori_eliminati = [nome.strip() for nome in self.autori_eliminati.split(',') if nome.strip()]
         return autori_attivi + autori_eliminati
 
-#    def get_tags_list(self):
-#        if self.tags:
-#            return [tag.strip().replace('#', '') for tag in self.tags.split(',')]
-#        return []
+    def get_tags_list(self):
+        if self.tag:
+            # Restituisce i tag come lista, rimuovendo eventuali #
+            return [t.strip().lstrip('#') for t in self.tag.split() if t.strip()]
+        return []
 
     class Meta:
         db_table = 'articoli'
         ordering = ['-data_pubblicazione']  # Ordina per data di pubblicazione decrescente
+
+    def delete(self, *args, **kwargs):
+        # Elimina il file immagine associato, se presente
+        if self.immagine and self.immagine.name:
+            self.immagine.delete(save=False)
+        super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        # Se si sta aggiornando l'immagine, elimina il vecchio file
+        if self.pk:
+            try:
+                old = Articolo.objects.get(pk=self.pk)
+                if old.immagine and self.immagine and old.immagine != self.immagine:
+                    old.immagine.delete(save=False)
+            except Articolo.DoesNotExist:
+                pass
+        super().save(*args, **kwargs)
 
 
 @receiver(m2m_changed, sender=Articolo.autori.through)

@@ -43,16 +43,12 @@ class ArticleDetailView(DetailView):
 def create_articolo(request):
     profilo_utente, created = ProfiloUtente.objects.get_or_create(user=request.user)
     if request.method == 'POST':
-        form = InserimentoArticoloForm(request.POST, request.FILES)
+        form = InserimentoArticoloForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            #articolo = form.save(commit=False)  # Non salvare ancora l'articolo
-            #articolo = articolo.save
-
-            articolo = form.save()  # Usa il metodo save del form per eseguire tutta la logica personalizzata
-            articolo.autori.add(profilo_utente)
+            articolo = form.save()  # L'autore viene aggiunto automaticamente dal form
             return redirect('article-detail', pk=articolo.pk)
     else:
-        form = InserimentoArticoloForm()
+        form = InserimentoArticoloForm(user=request.user)
     
     return render(request, 'article_form.html', {'form': form})
 
@@ -96,3 +92,11 @@ class ArticleDeleteView(DeleteView):
     model = Articolo
     template_name = 'article_confirm_delete.html'
     success_url = reverse_lazy('article-list')
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            from django.http import HttpResponse
+            return HttpResponse(status=204)
+        return redirect(self.success_url)
