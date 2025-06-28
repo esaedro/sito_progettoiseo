@@ -5,7 +5,7 @@
 {% block content %}
 
 <!-- Sezione di benvenuto -->
-<div class="container-fluid bg-primary text-white py-4 mb-5">
+<div class="container bg-primary text-white py-4 mb-5">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
@@ -30,7 +30,7 @@
                     <div class="card mb-3 border-0 shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <a href="#" class="text-decoration-none">{{ articolo.titolo }}</a>
+                                <a href="{% url 'article-detail' articolo.pk %}" class="text-decoration-none">{{ articolo.titolo }}</a>
                             </h5>
                             <div class="d-flex align-items-center mb-2 text-muted small">
                                 <i class="bi bi-calendar3 me-1"></i>
@@ -47,7 +47,7 @@
                                 {{ articolo.testo|truncate_smart:15 }}
                             </p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <a href="#" class="btn btn-outline-primary btn-sm">Leggi tutto</a>
+                                <a href="{% url 'article-detail' articolo.pk %}" class="btn btn-outline-primary btn-sm">Leggi tutto</a>
                                 <!-- {% if articolo.get_tutti_autori %}
                                 <small class="text-muted">
                                     di {{ articolo.get_tutti_autori|format_author_list }}
@@ -83,7 +83,7 @@
                     <div class="card mb-3 border-0 shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <a href="#" class="text-decoration-none">{{ evento.titolo }}</a>
+                                <a href="{% url 'eventi' %}" class="text-decoration-none">{{ evento.titolo }}</a>
                             </h5>
                             <div class="d-flex align-items-center mb-2 text-muted small">
                                 <i class="bi bi-calendar-check me-1"></i>
@@ -101,7 +101,7 @@
                                 {{ evento.descrizione|truncate_smart:15 }}
                             </p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <a href="#" class="btn btn-outline-success btn-sm">Dettagli evento</a>
+                                <a href="{% url 'eventi' %}" class="btn btn-outline-success btn-sm">Dettagli evento</a>
                                 <!-- {% if evento.numero_partecipanti %}
                                 <small class="text-muted">
                                     {{ evento.numero_partecipanti }} iscritti

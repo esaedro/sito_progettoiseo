@@ -1,92 +1,221 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/home">
-        <img src="/media/logo_progettoiseo.png" alt="Logo Progettoiseo" width="64" height="64" />
-    </a>
-    <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-    >
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" href="/articoli">Articoli</a></li>
-            <li class="nav-item"><a class="nav-link" href="/eventi">Eventi</a></li>
-            <div class="nav-item dropdown">
-                <a
-                    class="nav-link dropdown-toggle"
-                    href="#"
-                    id="navbarDropdown"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                >
-                Chi siamo
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="/home/storia">Storia</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="/home/direttivo">Direttivo</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="/home/contatti">Contatti</a></li>
-                </ul>
-            </div>
-        </ul>
-    </div>
-    <div class="navbar-nav ms-auto">
-        {% if user.is_authenticated %}
-        <span class="navbar-text me-3">Ciao, {{ user.first_name|default:user.username }}!</span>
-        <div class="nav-item dropdown">
-            <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="navbarDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-            >
-                <img
-                    src="{% if user.profile.immagine_profilo %}{{ user.profile.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}"
-                    alt="Foto profilo"
-                    class="rounded-circle"
-                    width="32"
-                    height="32"
-                    onerror="this.src='/media/accounts/foto_profilo_base.png';"
-                />
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="{% url 'profilo' %}">Gestisci Profilo</a></li>
-                {% if perms.accounts.add_profiloutente %}
-                    <li><hr class="dropdown-divider" /></li>
-                    <li>
-                        <a href="{% url 'registrazione' %}" class="dropdown-item">
-                            <i class="fas fa-user-plus"></i> Registra nuovo utente
-                        </a>
-                    </li>
-                {% endif %}
-                {% if user.is_superuser %}
-                    <li><hr class="dropdown-divider" /></li>
-                    <li>
-                        <a href="{% url 'admin:index' %}" class="dropdown-item">
-                            <i class="fas fa-cog"></i> Pagina di amministrazione
-                        </a>
-                    </li>
-                {% endif %}
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                    <a href="{% url 'logout' %}" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+<nav class="navbar navbar-expand-md navbar-dark bg-primary shadow-sm px-3" style="min-height: 70px;">
+    <div class="container-fluid p-0 d-flex align-items-center">
+        <a class="navbar-brand d-flex align-items-center py-2" href="/home">
+            <img src="/media/logo_progettoiseo.png" alt="Logo Progettoiseo" width="48" height="48" class="rounded-circle me-2" style="object-fit: cover;" />
+            <!-- <span class="fw-bold fs-5 text-light d-none d-md-inline">Progetto Iseo</span> -->
+        </a>
+
+        <div class="d-flex align-items-center ms-auto order-3">
+            {% if user.is_authenticated %}
+            <div class="d-flex align-items-center me-3">
+                <span class="navbar-text text-light me-3 d-none d-lg-inline">
+                    <i class="fas fa-user-circle me-1"></i>Ciao, {{ user.first_name|default:user.username }}!
+                </span>
+                <div class="nav-item dropdown">
+                    <a
+                        class="nav-link dropdown-toggle p-1"
+                        href="#"
+                        id="userDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        <img
+                            src="{% if user.profile.immagine_profilo %}{{ user.profile.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}"
+                            alt="Foto profilo"
+                            class="rounded-circle border border-2 border-light profile-img"
+                            width="40"
+                            height="40"
+                            style="object-fit: cover; cursor: pointer; transition: all 0.3s ease;"
+                            onerror="this.src='/media/accounts/foto_profilo_base.png';"
+                        />
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="userDropdown" style="border-radius: 12px; min-width: 200px;">
+                        <li><a class="dropdown-item py-2 px-3" href="{% url 'profilo' %}"><i class="fas fa-user me-2"></i>Gestisci Profilo</a></li>
+                        {% if perms.accounts.add_profiloutente %}
+                            <li><hr class="dropdown-divider my-0" /></li>
+                            <li>
+                                <a href="{% url 'registrazione' %}" class="dropdown-item py-2 px-3">
+                                    <i class="fas fa-user-plus me-2"></i>Registra nuovo utente
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <li><hr class="dropdown-divider my-0" /></li>
+                            <li>
+                                <a href="{% url 'admin:index' %}" class="dropdown-item py-2 px-3">
+                                    <i class="fas fa-cog me-2"></i>Amministrazione
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider my-0" /></li>
+                        <li>
+                            <a href="{% url 'logout' %}" class="dropdown-item py-2 px-3 text-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% else %}
+            <a class="btn btn-light btn-sm px-4 py-2 rounded-pill fw-medium me-2" href="/login" style="transition: all 0.3s ease;">
+                <i class="fas fa-sign-in-alt me-1"></i>Login
+            </a>
+            {% endif %}
+        </div>
+
+        <button
+            class="navbar-toggler border-0 p-2 ms-2 order-2"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+            style="position: relative;"
+        >
+            <div class="hamburger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav navbar-nav-custom">
+                <li class="nav-item mx-2">
+                    <a class="nav-link text-light fw-medium px-3 py-2 rounded-3 nav-hover" href="/articoli">
+                        <i class="fas fa-newspaper me-1"></i>Articoli
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link text-light fw-medium px-3 py-2 rounded-3 nav-hover" href="/eventi">
+                        <i class="fas fa-calendar-alt me-1"></i>Eventi
+                    </a>
+                </li>
+                <li class="nav-item dropdown mx-2">
+                    <a
+                        class="nav-link dropdown-toggle text-light fw-medium px-3 py-2 rounded-3 nav-hover"
+                        href="#"
+                        id="chisiamoDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        <i class="fas fa-users me-1"></i>Chi siamo
+                    </a>
+                    <ul class="dropdown-menu shadow-lg border-0" aria-labelledby="chisiamoDropdown" style="border-radius: 12px;">
+                        <li><a class="dropdown-item py-2 px-3" href="/home/storia"><i class="fas fa-history me-2"></i>Storia</a></li>
+                        <li><hr class="dropdown-divider my-0" /></li>
+                        <li><a class="dropdown-item py-2 px-3" href="/home/direttivo"><i class="fas fa-user-tie me-2"></i>Direttivo</a></li>
+                        <li><hr class="dropdown-divider my-0" /></li>
+                        <li><a class="dropdown-item py-2 px-3" href="/home/contatti"><i class="fas fa-envelope me-2"></i>Contatti</a></li>
+                    </ul>
                 </li>
             </ul>
         </div>
-        {% else %}
-        <a class="nav-link btn btn-outline-primary" href="/login">Login</a>
-        {% endif %}
     </div>
 </nav>
+
+<style>
+.nav-hover:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+}
+
+.profile-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.btn-light:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.dropdown-menu {
+   padding-top: 0;
+   padding-bottom: 0;
+}
+.dropdown-menu > li:first-child {
+   margin-top: 0px;
+}
+.dropdown-menu > li:last-child {
+   margin-bottom: 0px;
+}
+
+.dropdown-item:hover {
+    background-color: #e8e9ea;
+    border-radius: 12px;
+    transform: translateY(-1px);
+}
+
+/* Centratura solo su desktop */
+@media (min-width: 768px) {
+    .navbar-nav-custom {
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-nav {
+        text-align: left;
+        padding-top: 1rem;
+    }
+
+    .nav-item {
+        margin: 0.25rem 0;
+    }
+
+    .navbar-brand span {
+            display: none !important;
+        }
+
+        .navbar-toggler {
+            position: relative !important;
+            right: 0 !important;
+        }
+}
+
+/* Icona hamburger moderna */
+.hamburger-icon {
+    width: 24px;
+    height: 18px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background-color: white;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.navbar-toggler:hover .hamburger-icon span {
+    background-color: #f8f9fa;
+}
+
+.navbar-toggler[aria-expanded="true"] .hamburger-icon span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.navbar-toggler[aria-expanded="true"] .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggler[aria-expanded="true"] .hamburger-icon span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+.navbar-toggler:focus {
+    box-shadow: none !important;
+}
+</style>
