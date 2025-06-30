@@ -18,15 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', include('pagine_statiche.urls')),
-    path('', include('accounts.urls')),
     path('articoli/', include('articoli.urls')),
     path('eventi/', include('eventi.urls')),
-    path('', include('django.contrib.auth.urls'))
- 
+    path('', include('accounts.urls')),
+    path('', include('django.contrib.auth.urls')),
+    path('', lambda request: redirect('/home/')),  # Fallback redirect per URL radice
 ]
 
 # Per servire i file media in sviluppo

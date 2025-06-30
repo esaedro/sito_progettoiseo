@@ -23,7 +23,11 @@ def custom_login(request):
 
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                if password.startswith("##"):
+                    messages.success(request, 'Cambia la password provvisoria')
+                    return redirect('modifica-password')
+                else:
+                    return redirect('home')
             else:
                 messages.error(request, 'Username/Email o password non corretti.')
     else:
@@ -49,10 +53,9 @@ def registrazione(request):
     if request.method == 'POST':
         form = RegistrazioneForm(request.POST)
         if form.is_valid():
-            # Il signal si occupa di creare e inizializzare automaticamente il profilo
-            user = form.save()
+            user = form.save() # Il signal di ProfiloUtente si occupa di creare e inizializzare automaticamente il profilo
 
-            messages.success(request, f'Registrazione completata con successo! Benvenuto {user.username}!')
+            messages.success(request, f'Registrazione di {user.username} completata con successo!')
             return redirect('registrazione')
         else:
             messages.error(request, 'Ci sono errori nel form. Controlla i dati inseriti.')
