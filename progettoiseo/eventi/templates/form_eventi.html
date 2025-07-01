@@ -1,0 +1,215 @@
+<!-- Il form si usa sia per la creazione che per la modifica di un evento. -->
+{% extends "layouts/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  {% if is_direttivo %}
+  <h2>{% if form.instance.pk %}Modifica evento{% else %}Crea un nuovo evento{% endif %}</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>Per favore, correggi gli errori nei campi evidenziati qui sotto.</strong>
+      </div>
+    {% endif %}
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Titolo -->
+        <div class="mb-3">
+          <label for="{{ form.titolo.id_for_label }}" class="form-label">
+            <strong>Titolo:</strong>
+          </label>
+          {{ form.titolo }}
+          {% if form.titolo.errors %}
+            <div class="text-danger">
+              {% for error in form.titolo.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Descrizione -->
+        <div class="mb-3">
+          <label for="{{ form.descrizione.id_for_label }}" class="form-label">
+            <strong>Descrizione:</strong>
+          </label>
+          {{ form.descrizione }}
+          {% if form.descrizione.errors %}
+            <div class="text-danger">
+              {% for error in form.descrizione.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Inizio evento -->
+        <div class="mb-3">
+          <label for="{{ form.inizio_evento.id_for_label }}" class="form-label">
+            <strong>Inizio evento:</strong>
+          </label>
+          {{ form.inizio_evento }}
+          {% if form.inizio_evento.errors %}
+            <div class="text-danger">
+              {% for error in form.inizio_evento.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Fine evento -->
+        <div class="mb-3">
+          <label for="{{ form.fine_evento.id_for_label }}" class="form-label">
+            <strong>Fine evento:</strong>
+          </label>
+          {{ form.fine_evento }}
+          {% if form.fine_evento.errors %}
+            <div class="text-danger">
+              {% for error in form.fine_evento.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <script>
+        // Imposta il min della fine evento uguale all'inizio evento
+        document.addEventListener('DOMContentLoaded', function() {
+          var inizio = document.getElementById('{{ form.inizio_evento.id_for_label }}');
+          var fine = document.getElementById('{{ form.fine_evento.id_for_label }}');
+          if (inizio && fine) {
+            function aggiornaMinFine() {
+              if (inizio.value) {
+                fine.min = inizio.value;
+              } else {
+                fine.removeAttribute('min');
+              }
+            }
+            inizio.addEventListener('change', aggiornaMinFine);
+            aggiornaMinFine();
+          }
+        });
+        </script>
+
+        <!-- Luogo -->
+        <div class="mb-3">
+          <label for="{{ form.luogo.id_for_label }}" class="form-label">
+            <strong>Luogo:</strong>
+          </label>
+          {{ form.luogo }}
+          {% if form.luogo.errors %}
+            <div class="text-danger">
+              {% for error in form.luogo.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Immagine -->
+        <div class="mb-3">
+          <label for="{{ form.immagine.id_for_label }}" class="form-label">
+            <strong>Immagine:</strong>
+          </label>
+          {{ form.immagine }}
+          {% if form.immagine.errors %}
+            <div class="text-danger">
+              {% for error in form.immagine.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Stato -->
+        <div class="mb-3">
+          <label for="{{ form.stato.id_for_label }}" class="form-label">
+            <strong>Stato:</strong>
+          </label>
+          {{ form.stato }}
+          {% if form.stato.errors %}
+            <div class="text-danger">
+              {% for error in form.stato.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Organizzatore -->
+        <div class="mb-3">
+          <label for="{{ form.organizzatore.id_for_label }}" class="form-label">
+            <strong>Organizzatore:</strong>
+          </label>
+          {{ form.organizzatore }}
+          {% if form.organizzatore.errors %}
+            <div class="text-danger">
+              {% for error in form.organizzatore.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Posti massimi -->
+        <div class="mb-3">
+          <label for="{{ form.posti_massimi.id_for_label }}" class="form-label">
+            <strong>Numero massimo di posti:</strong>
+          </label>
+          {{ form.posti_massimi }}
+          {% if form.posti_massimi.errors %}
+            <div class="text-danger">
+              {% for error in form.posti_massimi.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="mt-3">
+      <button type="submit" class="btn btn-success">
+        Salva
+      </button>
+      <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">
+        Annulla
+      </a>
+    </div>
+  </form>
+  {% else %}
+    <div class="alert alert-danger">
+      Solo i membri del direttivo possono creare o modificare eventi.<br>
+      <a href="/accounts/login/?next={{ request.path }}">Accedi</a> con un account autorizzato.
+    </div>
+  {% endif %}
+</div>
+
+<style>
+/* Stili aggiuntivi per migliorare l'aspetto del form */
+.form-control, .form-select {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+}
+
+textarea.form-control {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-label {
+    font-weight: normal;
+    margin-bottom: 5px;
+}
+</style>
+{% endblock %}

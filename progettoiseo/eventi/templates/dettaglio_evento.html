@@ -1,0 +1,351 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb per navigazione -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'lista_eventi' %}" class="text-decoration-none">
+                    <i class="fas fa-arrow-left me-1"></i>Torna alla lista
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.titolo|truncatechars:50 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Colonna principale del contenuto -->
+        <div class="col-lg-8">
+            <!-- Titolo -->
+            <h1 class="display-4 mb-4 event-title">{{ event.titolo }}</h1>
+            
+            <!-- Metadati dell'evento -->
+            <div class="event-meta mb-4 p-3 bg-light rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <i class="fas fa-calendar-alt text-muted me-2"></i>
+                            <strong>Data:</strong>
+                            {% if event.inizio_evento and event.fine_evento %}
+                                Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
+                            {% elif event.inizio_evento %}
+                                {{ event.inizio_evento|date:'d/m/Y H:i' }}
+                            {% endif %}
+                        </p>
+                        <p class="mb-1">
+                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                            <strong>Luogo:</strong> {{ event.luogo }}
+                        </p>
+                        <p class="mb-1">
+                            <i class="fas fa-user text-muted me-2"></i>
+                            <strong>Organizzatore:</strong> {{ event.organizzatore }}
+                        </p>
+                        <p class="mb-1">
+                            <i class="fas fa-info-circle text-muted me-2"></i>
+                            <strong>Stato:</strong> {{ event.stato }}
+                        </p>
+                        <p class="mb-1">
+                            <i class="fas fa-users text-muted me-2"></i>
+                            <strong>Posti disponibili:</strong>
+                            {% if event.posti_massimi %}
+                                {{ event.posti_disponibili }} su {{ event.posti_massimi }}
+                            {% else %}
+                                Illimitati
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonna laterale con immagine -->
+        <div class="col-lg-4 mb-4">
+            <div class="event-image-container">
+                {% if event.immagine %}
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalImmagineEvento">
+                        <img src="{{ event.immagine.url }}" 
+                             alt="{{ event.titolo }}" 
+                             class="img-fluid rounded shadow event-detail-image" style="cursor: zoom-in;">
+                    </a>
+                    <!-- Modale per ingrandire immagine -->
+                    <div class="modal fade" id="modalImmagineEvento" tabindex="-1" aria-labelledby="modalImmagineEventoLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="modalImmagineEventoLabel">{{ event.titolo }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                          </div>
+                          <div class="modal-body text-center">
+                            <img src="{{ event.immagine.url }}" alt="{{ event.titolo }}" class="img-fluid rounded shadow">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenuto dell'evento -->
+    <div class="row">
+        <div class="col-12">
+            <div class="event-content bg-white p-4 rounded shadow-sm">
+                <div class="event-text">
+                    {{ event.descrizione|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pulsanti di azione -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-end gap-2">
+                {% if is_direttivo %}
+                    <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i>Modifica
+                    </a>
+                    <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Elimina
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Pulsanti di iscrizione/disiscrizione -->
+    <div class="row mt-3 mb-3">
+        <div class="col-12 text-center">
+            <!-- Contenitore messaggio feedback -->
+            <div id="feedback-message" style="display:none;" class="alert" role="alert"></div>
+            {% if user.is_authenticated %}
+                {% if event.is_iscrivibile and user.profile not in event.iscritti.all %}
+                    <button id="iscrizione-btn" class="btn btn-success" data-action="iscrivimi" data-url="{% url 'evento-register' event.pk %}">
+                        <i class="fas fa-user-plus me-1"></i>Iscrivimi all'evento
+                    </button>
+                {% elif user.profile in event.iscritti.all %}
+                    <button id="iscrizione-btn" class="btn btn-danger" data-action="disiscrivimi" data-url="{% url 'evento-unregister' event.pk %}">
+                        <i class="fas fa-user-minus me-1"></i>Disiscriviti dall'evento
+                    </button>
+                {% elif not event.is_iscrivibile %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-ban me-1"></i>Evento al completo
+                    </button>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
+                    <i class="fas fa-sign-in-alt me-1"></i>Accedi per iscriverti
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.event-title {
+    color: #2c3e50;
+    font-weight: 700;
+    line-height: 1.2;
+    max-width: 100%;
+    word-break: break-word;
+    white-space: normal;
+}
+
+@media (min-width: 992px) {
+    .event-title {
+        max-width: 90%;
+    }
+}
+
+.event-meta {
+    border-left: 4px solid #007bff;
+    font-size: 0.95rem;
+}
+
+.event-detail-image {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.event-image-placeholder {
+    width: 100%;
+    height: 300px;
+    background-color: #f8f9fa;
+    border: 2px dashed #dee2e6;
+}
+
+.event-image-container {
+    position: sticky;
+    top: 20px;
+}
+
+.event-content {
+    border: 1px solid #e9ecef;
+    min-height: 400px;
+}
+
+.event-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #333;
+    text-align: justify;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.event-text p {
+    margin-bottom: 1.5rem;
+}
+
+.event-text h1, .event-text h2, .event-text h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+}
+
+.breadcrumb-item a:hover {
+    color: #0056b3;
+    text-decoration: underline !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .event-image-container {
+        position: static;
+        margin-bottom: 2rem;
+    }
+    
+    .event-detail-image {
+        max-height: 250px;
+    }
+    
+    .event-image-placeholder {
+        height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .event-title {
+        font-size: 2rem;
+    }
+    
+    .event-meta {
+        font-size: 0.9rem;
+    }
+    
+    .event-text {
+        font-size: 1rem;
+        text-align: left;
+    }
+    
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+}
+
+/* Print styles */
+@media print {
+    .breadcrumb,
+    .btn,
+    .event-meta {
+        display: none !important;
+    }
+    
+    .event-title {
+        font-size: 24pt;
+        margin-bottom: 12pt;
+    }
+    
+    .event-text {
+        font-size: 12pt;
+        line-height: 1.5;
+    }
+}
+</style>
+
+<script>
+// Aggiungi funzionalità per condivisione (opzionale)
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scroll per eventuali ancore nel contenuto
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+
+// Gestione AJAX iscrizione/disiscrizione evento
+function showFeedback(message, type) {
+    var msgDiv = document.getElementById('feedback-message');
+    msgDiv.textContent = message;
+    msgDiv.className = 'alert alert-' + type;
+    msgDiv.style.display = 'block';
+    setTimeout(function() { msgDiv.style.display = 'none'; }, 3500);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('iscrizione-btn');
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var action = btn.getAttribute('data-action');
+            var url = btn.getAttribute('data-url');
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cambia pulsante e messaggio
+                    if (action === 'iscrivimi') {
+                        btn.className = 'btn btn-danger';
+                        btn.innerHTML = '<i class="fas fa-user-minus me-1"></i>Disiscriviti dall\'evento';
+                        btn.setAttribute('data-action', 'disiscrivimi');
+                        btn.setAttribute('data-url', data.url_unregister);
+                        showFeedback('Iscrizione avvenuta con successo!', 'success');
+                    } else {
+                        btn.className = 'btn btn-success';
+                        btn.innerHTML = '<i class="fas fa-user-plus me-1"></i>Iscrivimi all\'evento';
+                        btn.setAttribute('data-action', 'iscrivimi');
+                        btn.setAttribute('data-url', data.url_register);
+                        showFeedback('Disiscrizione avvenuta con successo!', 'warning');
+                    }
+                } else {
+                    showFeedback(data.message || 'Errore durante l\'operazione.', 'danger');
+                }
+            })
+            .catch(() => {
+                showFeedback('Errore di rete. Riprova.', 'danger');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

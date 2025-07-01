@@ -83,7 +83,7 @@
                     <div class="card mb-3 border-0 shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <a href="{% url 'eventi' %}" class="text-decoration-none">{{ evento.titolo }}</a>
+                                <a href="{% url 'evento-detail' evento.id %}" class="text-decoration-none">{{ evento.titolo }}</a>
                             </h5>
                             <div class="d-flex align-items-center mb-2 text-muted small">
                                 <i class="bi bi-calendar-check me-1"></i>
@@ -101,7 +101,7 @@
                                 {{ evento.descrizione|truncate_smart:15 }}
                             </p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <a href="{% url 'eventi' %}" class="btn btn-outline-success btn-sm">Dettagli evento</a>
+                                <a href="{% url 'evento-detail' evento.id %}" class="btn btn-outline-success btn-sm">Dettagli evento</a>
                                 <!-- {% if evento.numero_partecipanti %}
                                 <small class="text-muted">
                                     {{ evento.numero_partecipanti }} iscritti
@@ -120,7 +120,7 @@
                 {% endif %}
 
                 <div class="text-center mt-3">
-                    <a href="{% url 'eventi' %}" class="btn btn-success">Vedi tutti gli eventi</a>
+                    <a href="{% url 'lista_eventi' %}" class="btn btn-success">Vedi tutti gli eventi</a>
                 </div>
             </div>
         </div>

@@ -1,0 +1,15 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  {% if is_direttivo %}
+  <h2>Conferma eliminazione evento</h2>
+  <p>Sei sicuro di voler eliminare "{{ object.titolo }}"?</p>
+  <form method="post">{% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sì, elimina</button>
+    <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">Annulla</a>
+  </form>
+  {% else %}
+    <div class="alert alert-danger">Solo i membri del direttivo possono eliminare eventi.</div>
+  {% endif %}
+</div>
+{% endblock %}
