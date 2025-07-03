@@ -79,9 +79,7 @@
                         <!-- Azioni -->
                         <div class="mt-auto">
                             <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
-                                <a href="{% url 'article-detail' article.pk %}" class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation();">
-                                    <i class="fas fa-eye me-1"></i>Leggi
-                                </a>
+                                {# Pulsante "Leggi" rimosso, la card è già cliccabile #}
                                 {% if perms.articoli.change_articolo %}
                                 <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
                                     <i class="fas fa-edit me-1"></i>Modifica
