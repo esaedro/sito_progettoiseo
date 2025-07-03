@@ -87,10 +87,10 @@ DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'progettoiseo',
-        'USER': 'root',
-        'PASSWORD':'root',
+        'USER': 'django',
+        'PASSWORD':'django',
         'HOST': '127.0.0.1',
-        'PORT': '3307',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
