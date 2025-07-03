@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from .models import Evento
 from accounts.models import ProfiloUtente
 from django.contrib.auth.models import Group
@@ -29,7 +30,7 @@ class EventoForm(forms.ModelForm):
         if direttivo:
             direttivo_users = direttivo.user_set.all()
             self.fields['organizzatore'].queryset = ProfiloUtente.objects.filter(
-                models.Q(user__is_superuser=True) | models.Q(user__in=direttivo_users)
+                Q(user__is_superuser=True) | Q(user__in=direttivo_users)
             )
         else:
             self.fields['organizzatore'].queryset = ProfiloUtente.objects.filter(user__is_superuser=True)
