@@ -42,7 +42,7 @@
                             <div class="article-tags">
                                 <i class="fas fa-tags text-muted me-2"></i>
                                 {% for tag in article.get_tags_list %}
-                                    <span class="badge bg-secondary me-1">#{{ tag }}</span>
+                                    <span class="badge bg-secondary me-1">#{{ tag|cut:"," }}</span>
                                 {% endfor %}
                             </div>
                         {% endif %}

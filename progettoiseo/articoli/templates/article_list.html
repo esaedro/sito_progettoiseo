@@ -7,9 +7,11 @@
             <h1 class="mb-0">Lista Articoli</h1>
         </div>
         <div class="col-md-4 text-end">
+            {% if perms.articoli.add_articolo or perms.articoli.change_articolo %}
             <a href="{% url 'article-create' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-plus me-2"></i>Nuovo Articolo
             </a>
+            {% endif %}
         </div>
     </div>
     <!-- Filtro per tag -->
@@ -33,72 +35,72 @@
 
     <!-- Lista articoli -->
     <div class="row">
-        {% if articles %}
-            {% for article in articles %}
-                <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="card h-100 shadow-sm article-card">
-                        <!-- Immagine -->
-                        {% if article.immagine %}
-                            <img src="{{ article.immagine.url }}" class="card-img-top article-image" alt="{{ article.titolo }}">
-                        {% else %}
-                            <div class="card-img-top article-image-placeholder d-flex align-items-center justify-content-center bg-light">
-                                <i class="fas fa-image text-muted fa-3x"></i>
+        {% for article in articles %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100 shadow-sm article-card position-relative">
+                    <a href="{% url 'article-detail' article.pk %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'articolo {{ article.titolo }}" style="z-index:1;"></a>
+                    <!-- Immagine -->
+                    {% if article.immagine %}
+                        <img src="{{ article.immagine.url }}" class="card-img-top article-image" alt="{{ article.titolo }}">
+                    {% else %}
+                        <div class="card-img-top article-image-placeholder d-flex align-items-center justify-content-center bg-light">
+                            <i class="fas fa-image text-muted fa-3x"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body d-flex flex-column">
+                        <!-- Titolo -->
+                        <h5 class="card-title fw-bold">
+                            {{ article.titolo|truncatechars:60 }}
+                        </h5>
+
+                        <!-- Data -->
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ article.data_pubblicazione|date:"d M Y" }}
+                        </p>
+
+                        <!-- Tag -->
+                        {% if article.tag %}
+                            <div class="mb-2">
+                                {% for tag in article.get_tags_list %}
+                                    {% if tag %}
+                                        <span class="badge bg-secondary me-1">#{{ tag|cut:","|cut:" " }}</span>
+                                    {% endif %}
+                                {% endfor %}
                             </div>
                         {% endif %}
 
-                        <div class="card-body d-flex flex-column">
-                            <!-- Titolo -->
-                            <h5 class="card-title">
-                                <a href="{% url 'article-detail' article.pk %}" class="text-decoration-none">
-                                    {{ article.titolo|truncatechars:60 }}
+                        <!-- Estratto contenuto -->
+                        <p class="card-text flex-grow-1">
+                            {{ article.testo|truncatewords:20|striptags }}
+                        </p>
+
+                        <!-- Azioni -->
+                        <div class="mt-auto">
+                            <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
+                                <a href="{% url 'article-detail' article.pk %}" class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation();">
+                                    <i class="fas fa-eye me-1"></i>Leggi
                                 </a>
-                            </h5>
-
-                            <!-- Data -->
-                            <p class="text-muted small mb-2">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {{ article.data_pubblicazione|date:"d M Y" }}
-                            </p>
-
-                            <!-- Tag -->
-                            {% if article.tag %}
-                                <div class="mb-2">
-                                    {% for tag in article.get_tags_list %}
-                                        <span class="badge bg-secondary me-1">#{{ tag }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-
-                            <!-- Estratto contenuto -->
-                            <p class="card-text flex-grow-1">
-                                {{ article.testo|truncatewords:20|striptags }}
-                            </p>
-
-                            <!-- Azioni -->
-                            <div class="mt-auto">
-                                <div class="btn-group w-100" role="group">
-                                    <a href="{% url 'article-detail' article.pk %}" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye me-1"></i>Leggi
-                                    </a>
-                                    {% if perms.articoli.change_articolo %}
-                                    <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-edit me-1"></i>Modifica
-                                    </a>
-                                    {% endif %}
-                                    {% if perms.articoli.delete_articolo %}
-                                    <a href="{% url 'article-delete' article.pk %}" 
-                                       class="btn btn-outline-danger btn-sm"
-                                       data-modal="delete">
-                                       <i class="fas fa-trash me-1"></i>Elimina
-                                    </a>
-                                    {% endif %}
-                                </div>
+                                {% if perms.articoli.change_articolo %}
+                                <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+                                    <i class="fas fa-edit me-1"></i>Modifica
+                                </a>
+                                {% endif %}
+                                {% if perms.articoli.delete_articolo %}
+                                <a href="{% url 'article-delete' article.pk %}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   data-modal="delete"
+                                   onclick="event.stopPropagation();">
+                                   <i class="fas fa-trash me-1"></i>Elimina
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
-            {% endfor %}
-        {% else %}
+            </div>
+        {% empty %}
             <!-- Messaggio quando non ci sono articoli -->
             <div class="col-12">
                 <div class="text-center py-5">
@@ -116,7 +118,7 @@
                     </a>
                 </div>
             </div>
-        {% endif %}
+        {% endfor %}
     </div>
 
     <!-- Paginazione -->
@@ -194,13 +196,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Solo se il bottone ha l'attributo data-modal
             if (btn.hasAttribute('data-modal')) {
                 e.preventDefault();
-                const articleTitle = btn.closest('.card').querySelector('.card-title a').textContent.trim();
+                let articleTitle = '';
+                const titleElem = btn.closest('.card').querySelector('.card-title');
+                if (titleElem) {
+                    articleTitle = titleElem.textContent.trim();
+                }
                 deleteUrl = btn.getAttribute('href');
                 cardToRemove = btn.closest('.col-lg-6, .col-xl-4, .mb-4');
                 document.getElementById('modal-article-title').textContent = articleTitle;
                 document.getElementById('modal-delete-btn').setAttribute('href', deleteUrl);
-                var modal = new bootstrap.Modal(document.getElementById('deleteArticleModal'));
-                modal.show();
+                setTimeout(function() {
+                    var modal = new bootstrap.Modal(document.getElementById('deleteArticleModal'));
+                    modal.show();
+                }, 10);
             }
         });
     });
