@@ -49,111 +49,64 @@
       </div>
     </div>
     <div class="row">
-        {% if events %}
-            {% for event in events %}
-                <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="card h-100 shadow-sm event-card">
-                        <!-- Immagine -->
-                        {% if event.immagine %}
-                            <a href="{% url 'evento-detail' event.pk %}">
-                                <img src="{{ event.immagine.url }}" class="card-img-top event-image" alt="{{ event.titolo }}">
-                            </a>
-                        {% else %}
-                            <a href="{% url 'evento-detail' event.pk %}">
-                                <div class="card-img-top event-image-placeholder d-flex align-items-center justify-content-center bg-light">
-                                    <i class="fas fa-calendar-alt text-muted fa-3x"></i>
-                                </div>
-                            </a>
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <!-- Titolo -->
-                            <h5 class="card-title">
-                                <a href="{% url 'evento-detail' event.pk %}" class="text-decoration-none">
-                                    {{ event.titolo|truncatechars:60 }}
-                                </a>
-                            </h5>
-                            <!-- Data -->
-                            <p class="text-muted small mb-2">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {% if event.inizio_evento and event.fine_evento %}
-                                    Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
-                                {% elif event.inizio_evento %}
-                                    {{ event.inizio_evento|date:'d/m/Y H:i' }}
-                                {% endif %}
-                            </p>
-                            <!-- Luogo -->
-                            <p class="mb-2"><i class="fas fa-map-marker-alt me-1"></i> {{ event.luogo }}</p>
-                            <!-- Stato -->
-                            <p class="mb-2"><strong>Stato:</strong> {{ event.stato }}</p>
-                            <!-- Organizzatore -->
-                            {% if event.organizzatore %}
-                                <p class="mb-2"><strong>Organizzatore:</strong> {{ event.organizzatore }}</p>
+        {% for event in events %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100 shadow-sm event-card position-relative">
+                    <a href="{% url 'evento-detail' event.pk %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'evento {{ event.titolo }}" style="z-index:1;"></a>
+                    <!-- Immagine -->
+                    {% if event.immagine %}
+                        <img src="{{ event.immagine.url }}" class="card-img-top event-image" alt="{{ event.titolo }}">
+                    {% else %}
+                        <div class="card-img-top event-image-placeholder d-flex align-items-center justify-content-center bg-light">
+                            <i class="fas fa-calendar-alt text-muted fa-3x"></i>
+                        </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <!-- Titolo -->
+                        <h5 class="card-title fw-bold">
+                            {{ event.titolo|truncatechars:60 }}
+                        </h5>
+                        <!-- Data -->
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {% if event.inizio_evento and event.fine_evento %}
+                                Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
+                            {% elif event.inizio_evento %}
+                                {{ event.inizio_evento|date:'d/m/Y H:i' }}
                             {% endif %}
-                            <!-- Estratto descrizione -->
-                            <p class="card-text flex-grow-1">
-                                {{ event.descrizione|truncatewords:20|striptags }}
-                            </p>
-                            <!-- Azioni -->
-                            <div class="mt-auto">
-                                <div class="btn-group w-100" role="group">
-                                    {% if is_direttivo %}
-                                    <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-edit me-1"></i>Modifica
-                                    </a>
-                                    <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger btn-sm">
-                                        <i class="fas fa-trash me-1"></i>Elimina
-                                    </a>
-                                    {% endif %}
-                                </div>
+                        </p>
+                        <!-- Luogo -->
+                        <p class="mb-2"><i class="fas fa-map-marker-alt me-1"></i> {{ event.luogo }}</p>
+                        <!-- Stato -->
+                        <p class="mb-2"><strong>Stato:</strong> {{ event.stato }}</p>
+                        <!-- Organizzatore -->
+                        {% if event.organizzatore %}
+                            <p class="mb-2"><strong>Organizzatore:</strong> {{ event.organizzatore }}</p>
+                        {% endif %}
+                        <!-- Estratto descrizione -->
+                        <p class="card-text flex-grow-1">
+                            {{ event.descrizione|truncatewords:20|striptags }}
+                        </p>
+                        <!-- Azioni -->
+                        <div class="mt-auto">
+                            <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
+                                {% if is_direttivo %}
+                                <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+                                    <i class="fas fa-edit me-1"></i>Modifica
+                                </a>
+                                <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();">
+                                    <i class="fas fa-trash me-1"></i>Elimina
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
-            {% endfor %}
-            <!-- Paginazione -->
-            {% if is_paginated %}
-                <div class="col-12">
-                    <nav aria-label="Navigazione eventi">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
-                                        <i class="fas fa-angle-left"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-
-                            <li class="page-item active">
-                                <span class="page-link">
-                                    {{ page_obj.number }} di {{ page_obj.paginator.num_pages }}
-                                </span>
-                            </li>
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-            {% endif %}
-        {% else %}
+            </div>
+        {% empty %}
             <!-- Messaggio quando non ci sono eventi -->
             <div class="col-12">
-                <div class="alert alert-info text-center py-5">
+                <div class="text-center py-5">
                     <i class="fas fa-calendar-alt text-muted fa-5x mb-3"></i>
                     <h3 class="text-muted">Nessun evento trovato</h3>
                     <p class="text-muted">
@@ -161,9 +114,49 @@
                     </p>
                 </div>
             </div>
-        {% endif %}
+        {% endfor %}
     </div>
-</div>
+
+    <!-- Paginazione -->
+    {% if is_paginated %}
+        <div class="col-12">
+            <nav aria-label="Navigazione eventi">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_obj.number }} di {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if stato_filtro %}&stato={{ stato_filtro }}{% endif %}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
 <style>
 .event-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -182,11 +175,11 @@
     height: 200px;
     border-bottom: 1px solid #e0e0e0;
 }
-.card-title a {
+.card-title {
     color: #333;
     font-weight: 600;
 }
-.card-title a:hover {
+.event-card:hover .card-title {
     color: #007bff;
 }
 </style>
@@ -198,6 +191,17 @@
     <script>
         // Eventuali script specifici per la pagina degli eventi
         console.log("Pagina Eventi caricata");
+
+        // Imposta il filtro di default su IN_ATTESA se non è già impostato
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const statoFilter = document.getElementById('stato-filter');
+
+            // Se non c'è un parametro stato nell'URL, imposta IN_ATTESA come default
+            if (!urlParams.has('stato')) {
+                statoFilter.value = 'IN_ATTESA';
+            }
+        });
     </script>
 {% endblock %}
 
@@ -210,5 +214,3 @@
         <p>&copy; 2023 Progetto ISEO. Tutti i diritti riservati.</p>
     </footer>
 {% endblock %}
-
-

@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required       
+from django.contrib.auth.decorators import login_required
 from django.urls import path
 from . import views
 from django.db.models.signals import post_save, m2m_changed, pre_delete, pre_save
-from django.dispatch import receiver        
+from django.dispatch import receiver
 from .models import Evento
 from django.contrib import messages
 from django.urls import reverse
@@ -12,15 +12,30 @@ from django import forms
 from django.shortcuts import get_object_or_404
 from .forms import EventoForm
 from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def event_list(request):
-    stato_filtro = request.GET.get('stato', 'TUTTI')
+    # Imposta il filtro di default su IN_ATTESA se non specificato
+    stato_filtro = request.GET.get('stato', 'IN_ATTESA')
     # Ottieni tutte le scelte possibili dallo stesso model
     scelte_stato = [s[0] for s in Evento._meta.get_field('stato').choices]
     if stato_filtro != 'TUTTI' and stato_filtro in scelte_stato:
-        events = Evento.objects.filter(stato=stato_filtro).order_by('-inizio_evento')
+        # Ordinamento crescente per data di inizio evento
+        events = Evento.objects.filter(stato=stato_filtro).order_by('inizio_evento')
     else:
-        events = Evento.objects.order_by('-inizio_evento')
+        # Ordinamento crescente per data di inizio evento
+        events = Evento.objects.order_by('inizio_evento')
+
+    # Paginazione
+    paginator = Paginator(events, 9)  # 9 eventi per pagina
+    page = request.GET.get('page')
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        events = paginator.page(1)
+    except EmptyPage:
+        events = paginator.page(paginator.num_pages)
+
     user = request.user
     is_direttivo = user.is_authenticated and (user.is_superuser or user.groups.filter(name="Direttivo").exists())
     return render(request, 'lista_eventi.html', {
@@ -28,6 +43,8 @@ def event_list(request):
         'is_direttivo': is_direttivo,
         'stato_filtro': stato_filtro,
         'scelte_stato': scelte_stato,
+        'page_obj': events,
+        'is_paginated': events.has_other_pages(),
     })
 
 @login_required

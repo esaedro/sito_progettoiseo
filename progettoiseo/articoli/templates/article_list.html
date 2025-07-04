@@ -84,7 +84,7 @@
                                 </a>
                                 {% endif %}
                                 {% if perms.articoli.delete_articolo %}
-                                <a href="{% url 'article-delete' article.pk %}" 
+                                <a href="{% url 'article-delete' article.pk %}"
                                    class="btn btn-outline-danger btn-sm"
                                    data-modal="delete"
                                    onclick="event.stopPropagation();">
@@ -106,12 +106,9 @@
                         {% if request.GET.tag %}
                             Non ci sono articoli con il tag "{{ request.GET.tag }}".
                         {% else %}
-                            Non hai ancora creato nessun articolo.
+                            Non ci sono articoli disponibili al momento.
                         {% endif %}
                     </p>
-                    <a href="{% url 'article-create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Crea il tuo primo articolo
-                    </a>
                 </div>
             </div>
         {% endfor %}
@@ -303,11 +300,11 @@ TODO - DONE: Bottoni modifica/elimina visualizzabili solo se l'utente ha i perme
     .btn-group {
         flex-direction: column;
     }
-    
+
     .btn-group .btn {
         margin-bottom: 2px;
     }
-    
+
     .btn-group .btn:last-child {
         margin-bottom: 0;
     }
@@ -333,7 +330,7 @@ TODO - DONE: Bottoni modifica/elimina visualizzabili solo se l'utente ha i perme
 // Funzione per gestire il filtro in tempo reale (opzionale)
 document.addEventListener('DOMContentLoaded', function() {
     const tagFilter = document.getElementById('tag-filter');
-    
+
     // Aggiungi un piccolo ritardo per evitare submit troppo frequenti
     let timeout;
     tagFilter.addEventListener('change', function() {

@@ -14,14 +14,14 @@ class ArticleListView(ListView):
     template_name = 'article_list.html'
     context_object_name = 'articles'
     paginate_by = 9  # Opzionale: per la paginazione
-    
+
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-data_pubblicazione')  # Cambiato da 'created_at' a 'data_pubblicazione'
         tag_filter = self.request.GET.get('tag')
         if tag_filter:
             queryset = queryset.filter(tag__icontains=tag_filter)  # Cambiato da 'tags' a 'tag'
         return queryset
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni
@@ -39,7 +39,7 @@ class ArticleDetailView(DetailView):
     template_name = 'article_detail.html'
     context_object_name = 'article'
 
-@permission_required('articoli.create_articolo') 
+@permission_required('articoli.add_articolo')
 def create_articolo(request):
     profilo_utente, created = ProfiloUtente.objects.get_or_create(user=request.user)
     if request.method == 'POST':
@@ -49,14 +49,14 @@ def create_articolo(request):
             return redirect('article-detail', pk=articolo.pk)
     else:
         form = InserimentoArticoloForm(user=request.user)
-    
+
     return render(request, 'article_form.html', {'form': form})
 
-@permission_required('articoli.edit_articolo') 
+@permission_required('articoli.change_articolo')
 def edit_articolo(request, pk):
     profilo_utente, created = ProfiloUtente.objects.get_or_create(user=request.user)
     articolo = get_object_or_404(Articolo, pk=pk)
-    
+
     if request.method == 'POST':
         form = InserimentoArticoloForm(request.POST, request.FILES, instance=articolo)
         if form.is_valid():
@@ -64,7 +64,7 @@ def edit_articolo(request, pk):
             return redirect('article-detail', pk=articolo.pk)
     else:
         form = InserimentoArticoloForm(instance=articolo)
-    
+
     return render(request, 'article_form.html', {'form': form})
 
 """ @method_decorator(permission_required('articoli.add_articolo'), name='dispatch')
@@ -82,7 +82,7 @@ class ArticleUpdateView(UpdateView):
     template_name = 'article_form.html'
     fields = '__all__'
     success_url = reverse_lazy('article-list')
-    
+
     def get_success_url(self):
         # Opzionale: reindirizza al dettaglio dell'articolo dopo la modifica
         return reverse_lazy('article-detail', kwargs={'pk': self.object.pk}) """

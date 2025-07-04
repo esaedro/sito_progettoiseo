@@ -1,7 +1,10 @@
 {% extends "layouts/base.html" %} {% block title %} progettoiseo-contatti {% endblock %}
 
 {% block content %}
-<h1 class="text-center mb-4">Contatti e Social</h1>
+<div class="container mt-4">
+    <div class="row mb-4">
+        <h1 class="text-center mb-4">Contatti e Social</h1>
+    </div>
 
 <div class="container">
     <div class="row justify-content-center">
@@ -25,7 +28,7 @@
                     <div class="mb-3">
                         <i class="fas fa-map-marker-alt text-danger me-2"></i>
                         <strong>Indirizzo:</strong><br>
-                        <span class="ms-4">Via Roma, 1 - 00100 Roma</span>
+                        <span class="ms-4">Vicolo della manica - 25049 Iseo</span>
                     </div>
 
                     <div class="mb-3">
@@ -41,7 +44,11 @@
                     <div class="mb-3">
                         <i class="fas fa-phone text-success me-2"></i>
                         <strong>Telefono:</strong><br>
-                        <span class="ms-4">+39 06 12345678</span>
+                        <span class="ms-4">
+                            <a href="tel:+390612345678" class="text-decoration-none">
+                                +39 06 12345678
+                            </a>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -104,13 +111,14 @@
     </div>
 
     <!-- Sezione aggiuntiva con orari o info -->
-    <div class="row justify-content-center mt-4">
+    <!-- <div class="row justify-content-center mt-4">
         <div class="col-md-8">
             <div class="alert alert-light text-center">
                 <i class="fas fa-info-circle text-primary me-2"></i>
                 <strong>Orari di contatto:</strong> Dal lunedì al venerdì, 9:00 - 18:00
             </div>
         </div>
-    </div>
+    </div> -->
+</div>
 </div>
 {% endblock %}

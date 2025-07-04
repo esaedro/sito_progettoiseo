@@ -4,6 +4,61 @@
 {% block title %} Home {% endblock %}
 {% block content %}
 
+<style>
+.clickable-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.clickable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+}
+
+.clickable-card .card-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.clickable-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.clickable-card .card-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.clickable-card .card-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.card-article {
+    border-left: 3px solid #0d6efd !important;
+}
+
+.card-event {
+    border-left: 3px solid #198754 !important;
+}
+</style>
+
 <!-- Sezione di benvenuto -->
 <div class="container bg-primary text-white py-4 mb-5">
     <div class="container">
@@ -27,29 +82,28 @@
 
                 {% if ultimi_articoli %}
                     {% for articolo in ultimi_articoli %}
-                    <div class="card mb-3 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'article-detail' articolo.pk %}" class="text-decoration-none">{{ articolo.titolo }}</a>
-                            </h5>
-                            <div class="d-flex align-items-center mb-2 text-muted small">
-                                <i class="bi bi-calendar3 me-1"></i>
-                                <span class="me-3">{{ articolo.data_pubblicazione|date:"d F Y" }}</span>
-                                {% if articolo.tag %}
-                                <div class="mb-2">
-                                    {% for tag in articolo.get_tags_list %}
-                                        {% if tag %}
-                                            <span class="badge bg-secondary me-1">#{{ tag|cut:","}}</span>
-                                        {% endif %}
-                                    {% endfor %}
+                    <a href="{% url 'article-detail' articolo.pk %}" class="text-decoration-none">
+                        <div class="card mb-3 border-0 shadow-sm clickable-card card-article">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ articolo.titolo }}
+                                </h5>
+                                <div class="d-flex align-items-center mb-2 text-muted small">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    <span class="me-3">{{ articolo.data_pubblicazione|date:"d F Y" }}</span>
+                                    {% if articolo.tag %}
+                                    <div class="mb-2">
+                                        {% for tag in articolo.get_tags_list %}
+                                            {% if tag %}
+                                                <span class="badge bg-secondary me-1">#{{ tag|cut:","}}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
-                            </div>
-                            <p class="card-text text-muted">
-                                {{ articolo.testo|truncate_smart:15 }}
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{% url 'article-detail' articolo.pk %}" class="btn btn-outline-primary btn-sm">Leggi tutto</a>
+                                <p class="card-text text-muted">
+                                    {{ articolo.testo|truncate_smart:30 }}
+                                </p>
                                 <!-- {% if articolo.get_tutti_autori %}
                                 <small class="text-muted">
                                     di {{ articolo.get_tutti_autori|format_author_list }}
@@ -57,7 +111,7 @@
                                 {% endif %} -->
                             </div>
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
                 {% else %}
                     <div class="card mb-3 border-0 shadow-sm">
@@ -82,28 +136,34 @@
 
                 {% if prossimi_eventi %}
                     {% for evento in prossimi_eventi %}
-                    <div class="card mb-3 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'evento-detail' evento.id %}" class="text-decoration-none">{{ evento.titolo }}</a>
-                            </h5>
-                            <div class="d-flex align-items-center mb-2 text-muted small">
-                                <i class="bi bi-calendar-check me-1"></i>
-                                <span class="fw-bold text-success">
-                                    {{ evento.date_evento|format_event_dates }}
-                                </span>
-                            </div>
-                            {% if evento.luogo %}
-                            <div class="d-flex align-items-center mb-2 text-muted small">
-                                <i class="bi bi-geo-alt me-1"></i>
-                                <span>{{ evento.luogo }}</span>
-                            </div>
-                            {% endif %}
-                            <p class="card-text text-muted">
-                                {{ evento.descrizione|truncate_smart:15 }}
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{% url 'evento-detail' evento.id %}" class="btn btn-outline-success btn-sm">Dettagli evento</a>
+                    <a href="{% url 'evento-detail' evento.id %}" class="text-decoration-none">
+                        <div class="card mb-3 border-0 shadow-sm clickable-card card-event">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ evento.titolo }}
+                                </h5>
+                                <div class="d-flex align-items-center mb-2 text-muted small">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    <span class="fw-bold text-success">
+                                        {% if evento.inizio_evento %}
+                                            {{ evento.inizio_evento|date:"d/m/Y" }}
+                                            {% if evento.fine_evento and evento.fine_evento.date != evento.inizio_evento.date %}
+                                                - {{ evento.fine_evento|date:"d/m/Y" }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ evento.date_evento|format_event_dates }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% if evento.luogo %}
+                                <div class="d-flex align-items-center mb-2 text-muted small">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <span>{{ evento.luogo }}</span>
+                                </div>
+                                {% endif %}
+                                <p class="card-text text-muted">
+                                    {{ evento.descrizione|truncate_smart:30 }}
+                                </p>
                                 <!-- {% if evento.numero_partecipanti %}
                                 <small class="text-muted">
                                     {{ evento.numero_partecipanti }} iscritti
@@ -111,7 +171,7 @@
                                 {% endif %} -->
                             </div>
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
                 {% else %}
                     <div class="card mb-3 border-0 shadow-sm">
@@ -142,7 +202,3 @@
 </div>
 
 {% endblock %}
-
-
-<!-- TODO: titoli e bottono "leggi tutto" degli articoli visualizzati in pagina home non funzionano
- non hanno il link -->
