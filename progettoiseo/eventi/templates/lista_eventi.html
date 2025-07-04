@@ -16,7 +16,38 @@
             {% endif %}
         </div>
     </div>
-    <!-- Lista eventi -->
+    <!-- Filtro per stato (stile articoli) -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <form method="get" id="filter-form">
+                <div class="input-group">
+                    <label for="stato-filter" class="input-group-text">Filtra per stato:</label>
+                    <select name="stato" id="stato-filter" class="form-select" onchange="this.form.submit()">
+                        <option value="TUTTI" {% if stato_filtro == "TUTTI" %}selected{% endif %}>Tutti</option>
+                        {% for stato in scelte_stato %}
+                            <option value="{{ stato }}" {% if stato_filtro == stato %}selected{% endif %}>
+                                {% if stato == 'IN_ATTESA' %}In attesa{% elif stato == 'CONCLUSO' %}Concluso{% elif stato == 'AL_COMPLETO' %}Al completo{% elif stato == 'ANNULLATO' %}Annullato{% else %}{{ stato|capfirst }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Modale Bootstrap per zoom immagini evento -->
+    <div class="modal fade" id="eventImageModal" tabindex="-1" aria-labelledby="eventImageModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="eventImageModalLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+          </div>
+          <div class="modal-body d-flex justify-content-center align-items-center" style="min-height:300px;">
+            <img id="eventImageModalImg" src="" alt="" style="max-width:100%; max-height:70vh; object-fit:contain; border-radius:8px; background:#fff; box-shadow:0 0 32px #000;">
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row">
         {% if events %}
             {% for event in events %}
@@ -122,6 +153,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{% static 'js/eventi_lightbox.js' %}"></script>
+    <script src="{% static 'js/eventi_img_fallback.js' %}"></script>
     <script>
         // Eventuali script specifici per la pagina degli eventi
         console.log("Pagina Eventi caricata");

@@ -14,10 +14,21 @@ from .forms import EventoForm
 from django.http import JsonResponse
 
 def event_list(request):
-    events = Evento.objects.order_by('-inizio_evento')
+    stato_filtro = request.GET.get('stato', 'TUTTI')
+    # Ottieni tutte le scelte possibili dallo stesso model
+    scelte_stato = [s[0] for s in Evento._meta.get_field('stato').choices]
+    if stato_filtro != 'TUTTI' and stato_filtro in scelte_stato:
+        events = Evento.objects.filter(stato=stato_filtro).order_by('-inizio_evento')
+    else:
+        events = Evento.objects.order_by('-inizio_evento')
     user = request.user
     is_direttivo = user.is_authenticated and (user.is_superuser or user.groups.filter(name="Direttivo").exists())
-    return render(request, 'lista_eventi.html', {'events': events, 'is_direttivo': is_direttivo})
+    return render(request, 'lista_eventi.html', {
+        'events': events,
+        'is_direttivo': is_direttivo,
+        'stato_filtro': stato_filtro,
+        'scelte_stato': scelte_stato,
+    })
 
 @login_required
 def event_create(request):
@@ -29,8 +40,8 @@ def event_create(request):
         form = EventoForm(request.POST, request.FILES)
         if form.is_valid():
             evento = form.save()
-            messages.success(request, 'Evento creato con successo!')
-            return redirect(reverse('lista_eventi'))
+            # Dopo il salvataggio, reindirizza alla lista filtrata per lo stato dell'evento appena creato
+            return redirect(f"{reverse('lista_eventi')}?stato={evento.stato}")
     else:
         form = EventoForm()
     return render(request, 'form_eventi.html', {'form': form, 'is_direttivo': is_direttivo})
