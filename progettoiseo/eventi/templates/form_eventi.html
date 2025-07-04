@@ -166,15 +166,16 @@
           {% endif %}
         </div>
       </div>
+      <div class="col-md-4">
+        <div class="d-flex flex-column align-items-end gap-2">
+          <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
+            Salva
+          </button>
+          <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">Annulla</a>
+        </div>
+      </div>
     </div>
-    <div class="mt-3">
-      <button type="submit" class="btn btn-success">
-        Salva
-      </button>
-      <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">
-        Annulla
-      </a>
-    </div>
+      
   </form>
   {% else %}
     <div class="alert alert-danger">

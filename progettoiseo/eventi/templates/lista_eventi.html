@@ -81,7 +81,7 @@
                         <p class="mb-2"><strong>Stato:</strong> {{ event.stato }}</p>
                         <!-- Organizzatore -->
                         {% if event.organizzatore %}
-                            <p class="mb-2"><strong>Organizzatore:</strong> {{ event.organizzatore }}</p>
+                            <p class="mb-2"><strong>Organizzatore:</strong> {{ event.organizzatore.user.get_full_name|default:event.organizzatore.user.username }}</p>
                         {% endif %}
                         <!-- Estratto descrizione -->
                         <p class="card-text flex-grow-1">

@@ -2,8 +2,7 @@
 {% extends "layouts/base.html" %}
 {% block content %}
 <div class="container mt-4">
-  <h2>{{ view.object.pk|yesno:"Modifica articolo,Crea un nuovo articolo" }}</h2>
-  
+  <h2>{% if form.instance.pk %}Modifica articolo{% else %}Crea un nuovo articolo{% endif %}</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
@@ -101,18 +100,12 @@
 
       <!-- Colonna destra - Pulsante Pubblica -->
       <div class="col-md-4">
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary btn-lg px-4">
-            Pubblica
+        <div class="d-flex flex-column align-items-end gap-2">
+          <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
+            Salva
           </button>
+          <a href="{% url 'article-list' %}" class="btn btn-secondary">Annulla</a>
         </div>
-      </div>
-    </div>
-
-    <!-- Pulsante Cancel nella parte inferiore -->
-    <div class="row mt-3">
-      <div class="col-12">
-        <a href="{% url 'article-list' %}" class="btn btn-secondary">Cancel</a>
       </div>
     </div>
   </form>
@@ -131,9 +124,9 @@ textarea.form-control {
     resize: vertical;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
 }
 
 .form-label {
