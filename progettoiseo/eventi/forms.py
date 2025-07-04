@@ -14,8 +14,14 @@ class EventoForm(forms.ModelForm):
         widgets = {
             'titolo': forms.TextInput(attrs={'class': 'form-control'}),
             'descrizione': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'inizio_evento': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'fine_evento': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'inizio_evento': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format='%Y-%m-%dT%H:%M'
+            ),
+            'fine_evento': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'},
+                format='%Y-%m-%dT%H:%M'
+            ),
             'luogo': forms.TextInput(attrs={'class': 'form-control'}),
             'immagine': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'posti_massimi': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -36,3 +42,9 @@ class EventoForm(forms.ModelForm):
             self.fields['organizzatore'].queryset = ProfiloUtente.objects.filter(user__is_superuser=True)
         # Migliora la label
         self.fields['organizzatore'].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username}"
+
+        # Fix visualizzazione valori precompilati per i campi datetime-local
+        for field in ['inizio_evento', 'fine_evento']:
+            if self.instance and getattr(self.instance, field):
+                value = getattr(self.instance, field)
+                self.fields[field].initial = value.strftime('%Y-%m-%dT%H:%M')
