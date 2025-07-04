@@ -24,11 +24,11 @@ class ArticleListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Aggiungi i tag disponibili per il filtro
+        # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni
         available_tags = set()
         for article in Articolo.objects.all():
-            if article.tag:  # Cambiato da 'tags' a 'tag'
-                tags = [tag.strip().replace('#', '') for tag in article.tag.split(',')]
+            if article.tag:
+                tags = [f'#{t.strip()}' for t in article.tag.split('#') if t.strip()]
                 available_tags.update(tags)
         context['available_tags'] = sorted(available_tags)
         return context

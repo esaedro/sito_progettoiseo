@@ -55,7 +55,12 @@ class InserimentoArticoloForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['autori'].initial = self.instance.autori.all()
             self.fields['titolo'].initial = self.instance.titolo
-            self.fields['tag'].initial = self.instance.tag
+            # Ricostruisci la stringa dei tag come erano stati inseriti, usando solo # come delimitatore
+            if self.instance.tag:
+                tag_list = [f'#{t.strip()}' for t in self.instance.tag.split('#') if t.strip()]
+                self.fields['tag'].initial = ' '.join(tag_list)
+            else:
+                self.fields['tag'].initial = ''
             self.fields['immagine'].initial = self.instance.immagine
             self.fields['testo'].initial = self.instance.testo
         
@@ -72,7 +77,8 @@ class InserimentoArticoloForm(forms.ModelForm):
             articolo.titolo = self.cleaned_data['titolo']
         if self.cleaned_data['tag']:
             tag_string = self.cleaned_data['tag']
-            tag_list = [t.lstrip('#') for t in tag_string.split() if t.strip()]
+            # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni
+            tag_list = [f'#{t.strip()}' for t in tag_string.split('#') if t.strip()]
             articolo.tag = ' '.join(tag_list)
         if self.cleaned_data['immagine']:
             articolo.immagine = self.cleaned_data['immagine']

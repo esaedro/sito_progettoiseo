@@ -28,8 +28,8 @@ class Articolo(models.Model):
 
     def get_tags_list(self):
         if self.tag:
-            # Restituisce i tag come lista, rimuovendo eventuali #
-            return [t.strip().lstrip('#') for t in self.tag.split() if t.strip()]
+            # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni, senza aggiungere #
+            return [t.strip() for t in self.tag.split('#') if t.strip()]
         return []
 
     class Meta:
