@@ -99,7 +99,3 @@ class InserimentoArticoloForm(forms.ModelForm):
     class Meta:
         model = Articolo
         fields = ['titolo', 'autori', 'tag', 'immagine', 'testo']
-
-#TODO- DONE?: L'utente che sta creando l'articolo dovrebbe essere automaticamente aggiunto come autore
-#Inoltre la lista degli autori selezionabili deve contenere solo membri del direttivo
-#e non tutti gli utenti registrati. Per fare questo, si può filtrare il queryset
