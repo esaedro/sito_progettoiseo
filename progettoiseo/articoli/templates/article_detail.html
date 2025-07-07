@@ -79,7 +79,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-end gap-2">
                 {% if perms.articoli.change_articolo %}
-                    <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-primary">
+                    <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Modifica
                     </a>
                 {% endif %}

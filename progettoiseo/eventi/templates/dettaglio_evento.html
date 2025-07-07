@@ -62,25 +62,9 @@
         <div class="col-lg-4 mb-4">
             <div class="event-image-container">
                 {% if event.immagine %}
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalImmagineEvento">
-                        <img src="{{ event.immagine.url }}" 
-                             alt="{{ event.titolo }}" 
-                             class="img-fluid rounded shadow event-detail-image" style="cursor: zoom-in;">
-                    </a>
-                    <!-- Modale per ingrandire immagine -->
-                    <div class="modal fade" id="modalImmagineEvento" tabindex="-1" aria-labelledby="modalImmagineEventoLabel" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="modalImmagineEventoLabel">{{ event.titolo }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-                          </div>
-                          <div class="modal-body text-center">
-                            <img src="{{ event.immagine.url }}" alt="{{ event.titolo }}" class="img-fluid rounded shadow">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <img src="{{ event.immagine.url }}" 
+                         alt="{{ event.titolo }}" 
+                         class="img-fluid rounded shadow event-detail-image">
                 {% endif %}
             </div>
         </div>
@@ -102,7 +86,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-end gap-2">
                 {% if is_direttivo %}
-                    <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-primary">
+                    <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Modifica
                     </a>
                     <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger">
@@ -113,32 +97,38 @@
         </div>
     </div>
 
-    <!-- Pulsanti di iscrizione/disiscrizione -->
+    <!-- Pulsanti di iscrizione/disiscrizione: visibili solo se evento IN_ATTESA -->
+    {% if event.stato == 'IN_ATTESA' %}
     <div class="row mt-3 mb-3">
         <div class="col-12 text-center">
             <!-- Contenitore messaggio feedback -->
             <div id="feedback-message" style="display:none;" class="alert" role="alert"></div>
-            {% if user.is_authenticated %}
-                {% if event.is_iscrivibile and user.profile not in event.iscritti.all %}
-                    <button id="iscrizione-btn" class="btn btn-success" data-action="iscrivimi" data-url="{% url 'evento-register' event.pk %}">
-                        <i class="fas fa-user-plus me-1"></i>Iscrivimi all'evento
-                    </button>
-                {% elif user.profile in event.iscritti.all %}
-                    <button id="iscrizione-btn" class="btn btn-danger" data-action="disiscrivimi" data-url="{% url 'evento-unregister' event.pk %}">
-                        <i class="fas fa-user-minus me-1"></i>Disiscriviti dall'evento
-                    </button>
-                {% elif not event.is_iscrivibile %}
-                    <button class="btn btn-secondary" disabled>
-                        <i class="fas fa-ban me-1"></i>Evento al completo
-                    </button>
+            {% if event.stato == 'IN_ATTESA' %}
+                {% if user.is_authenticated %}
+                    {% if event.is_iscrivibile and user.profile not in event.iscritti.all %}
+                        {% if not event.posti_massimi or event.iscritti.count < event.posti_massimi %}
+                            <button id="iscrizione-btn" class="btn btn-success" data-action="iscrivimi" data-url="{% url 'evento-register' event.pk %}">
+                                <i class="fas fa-user-plus me-1"></i>Iscrivimi all'evento
+                            </button>
+                        {% endif %}
+                    {% elif user.profile in event.iscritti.all %}
+                        <button id="iscrizione-btn" class="btn btn-danger" data-action="disiscrivimi" data-url="{% url 'evento-unregister' event.pk %}">
+                            <i class="fas fa-user-minus me-1"></i>Disiscriviti dall'evento
+                        </button>
+                    {% elif not event.is_iscrivibile %}
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-ban me-1"></i>Evento al completo
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-1"></i>Accedi per iscriverti
+                    </a>
                 {% endif %}
-            {% else %}
-                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
-                    <i class="fas fa-sign-in-alt me-1"></i>Accedi per iscriverti
-                </a>
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <style>

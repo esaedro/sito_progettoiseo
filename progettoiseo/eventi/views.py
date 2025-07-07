@@ -56,9 +56,9 @@ def event_create(request):
     if request.method == 'POST':
         form = EventoForm(request.POST, request.FILES)
         if form.is_valid():
-            evento = form.save()
-            # Dopo il salvataggio, reindirizza alla lista filtrata per lo stato dell'evento appena creato
-            return redirect(f"{reverse('lista_eventi')}?stato={evento.stato}")
+            form.save()
+            # Dopo il salvataggio, reindirizza SEMPRE alla lista eventi senza filtro stato
+            return redirect('lista_eventi')
     else:
         form = EventoForm()
     return render(request, 'form_eventi.html', {'form': form, 'is_direttivo': is_direttivo})

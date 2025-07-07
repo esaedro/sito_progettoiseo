@@ -78,7 +78,14 @@
                         <!-- Luogo -->
                         <p class="mb-2"><i class="fas fa-map-marker-alt me-1"></i> {{ event.luogo }}</p>
                         <!-- Stato -->
-                        <p class="mb-2"><strong>Stato:</strong> {{ event.stato }}</p>
+                        <p class="mb-2"><strong>Stato:</strong> 
+                            {% if event.stato == 'IN_ATTESA' %}In attesa
+                            {% elif event.stato == 'CONCLUSO' %}Concluso
+                            {% elif event.stato == 'AL_COMPLETO' %}Al completo
+                            {% elif event.stato == 'ANNULLATO' %}Annullato
+                            {% else %}{{ event.stato|capfirst }}
+                            {% endif %}
+                        </p>
                         <!-- Organizzatore -->
                         {% if event.organizzatore %}
                             <p class="mb-2"><strong>Organizzatore:</strong> {{ event.organizzatore.user.get_full_name|default:event.organizzatore.user.username }}</p>
@@ -94,8 +101,11 @@
                                 <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
                                     <i class="fas fa-edit me-1"></i>Modifica
                                 </a>
-                                <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();">
-                                    <i class="fas fa-trash me-1"></i>Elimina
+                                <a href="{% url 'evento-delete' event.pk %}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   data-modal="delete"
+                                   onclick="event.stopPropagation();">
+                                   <i class="fas fa-trash me-1"></i>Elimina
                                 </a>
                                 {% endif %}
                             </div>
@@ -157,6 +167,101 @@
             </nav>
         </div>
     {% endif %}
+
+<!-- Modal Eliminazione Evento -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteEventModalLabel">
+                    Conferma eliminazione
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                Sei sicuro di voler eliminare l'evento <strong id="modal-event-title"></strong>?
+                <p class="text-danger mt-2 mb-0"><small>Questa azione non può essere annullata.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <a href="#" id="modal-delete-btn" class="btn btn-danger">Elimina</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let deleteUrl = '';
+    let cardToRemove = null;
+    // Selettori per tutti i bottoni elimina
+    document.querySelectorAll('.btn-outline-danger').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            // Solo se il bottone ha l'attributo data-modal
+            if (btn.hasAttribute('data-modal')) {
+                e.preventDefault();
+                let eventTitle = '';
+                const titleElem = btn.closest('.card').querySelector('.card-title');
+                if (titleElem) {
+                    eventTitle = titleElem.textContent.trim();
+                }
+                deleteUrl = btn.getAttribute('href');
+                cardToRemove = btn.closest('.col-lg-6, .col-xl-4, .mb-4');
+                document.getElementById('modal-event-title').textContent = eventTitle;
+                document.getElementById('modal-delete-btn').setAttribute('href', deleteUrl);
+                setTimeout(function() {
+                    var modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+                    modal.show();
+                }, 10);
+            }
+        });
+    });
+
+    // Gestione click su "Elimina" nel modal
+    document.getElementById('modal-delete-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const csrftoken = getCookie('csrftoken');
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Chiudi il modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+                modal.hide();
+                // Dopo l'eliminazione aggiorna sempre la pagina
+                window.location.reload();
+            } else {
+                alert('Errore durante l\'eliminazione.');
+            }
+        })
+        .catch(() => {
+            alert('Errore di rete.');
+        });
+    });
+
+    // Funzione per ottenere il CSRF token dai cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
 <style>
 .event-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
