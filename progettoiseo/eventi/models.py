@@ -13,7 +13,7 @@ class Evento(models.Model):
     inizio_evento = models.DateTimeField(null=True, blank=True)
     fine_evento = models.DateTimeField(null=True, blank=True)
     luogo = models.CharField(max_length=255, blank=False, null=False)
-    immagine = models.ImageField(upload_to='immagini_eventi/', blank=True, null=True)
+    immagine = models.ImageField(upload_to='eventi/', blank=True, null=True)
     numero_partecipanti = models.PositiveIntegerField(default=0, blank=True, null=True)
     posti_massimi = models.PositiveIntegerField(default=0, blank=True, null=True)
     stato = models.CharField(max_length=50, choices=[('IN_ATTESA', 'IN_ATTESA'), ('CONCLUSO', 'CONCLUSO'), ('AL_COMPLETO', 'AL_COMPLETO'), ('ANNULLATO', 'ANNULLATO')], default='IN_ATTESA')

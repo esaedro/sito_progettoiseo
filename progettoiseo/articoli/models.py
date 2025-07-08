@@ -13,7 +13,7 @@ class Articolo(models.Model):
     autori = models.ManyToManyField(ProfiloUtente, related_name='articoli', db_table='articolo_autori')
     autori_eliminati = models.TextField(blank=True, help_text="Nomi degli autori eliminati, separati da virgola")
     data_pubblicazione = models.DateTimeField(auto_now_add=True)
-    immagine = models.ImageField(upload_to='immagini_articoli/', blank=True, null=True)
+    immagine = models.ImageField(upload_to='articoli/', blank=True, null=True)
 
     def __str__(self):
         return self.titolo

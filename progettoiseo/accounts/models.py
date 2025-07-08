@@ -8,7 +8,7 @@ from django.dispatch.dispatcher import receiver
 class ProfiloUtente(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     numero_tessera = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    immagine_profilo = models.ImageField(upload_to='immagini_di_profilo/', blank=True, null=True)
+    immagine_profilo = models.ImageField(upload_to='accounts/foto_profilo/', blank=True, null=True)
     data_tesseramento = models.DateField(blank=True, null=True)
 
     objects = models.Manager()

@@ -1,3 +1,4 @@
+
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
@@ -13,6 +14,7 @@ from django.shortcuts import get_object_or_404
 from .forms import EventoForm
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils import timezone
 
 def event_list(request):
     # Imposta il filtro di default su IN_ATTESA se non specificato
@@ -65,6 +67,19 @@ def event_create(request):
 
 def event_detail(request, pk):
     event = get_object_or_404(Evento, pk=pk)
+    # Aggiorna lo stato in base ai posti disponibili ad ogni refresh
+    stato_originale = event.stato
+    if event.fine_evento and event.fine_evento < timezone.now():
+        if event.stato != 'CONCLUSO':
+            event.stato = 'CONCLUSO'
+            event.save(update_fields=["stato"])
+    elif event.posti_massimi and event.posti_disponibili() == 0 and event.stato not in ['CONCLUSO', 'ANNULLATO']:
+        if event.stato != 'AL_COMPLETO':
+            event.stato = 'AL_COMPLETO'
+            event.save(update_fields=["stato"])
+    elif event.stato == 'AL_COMPLETO' and (not event.posti_massimi or event.posti_disponibili() > 0):
+        event.stato = 'IN_ATTESA'
+        event.save(update_fields=["stato"])
     user = request.user
     is_direttivo = user.is_authenticated and (user.is_superuser or user.groups.filter(name="Direttivo").exists())
     return render(request, 'dettaglio_evento.html', {'event': event, 'is_direttivo': is_direttivo})
