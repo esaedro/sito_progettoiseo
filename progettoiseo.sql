@@ -44,19 +44,19 @@ LOCK TABLES `accounts_profiloutente` WRITE;
 /*!40000 ALTER TABLE `accounts_profiloutente` DISABLE KEYS */;
 INSERT INTO `accounts_profiloutente` VALUES
 (1,'20250613121022','','2025-06-13',1),
-(13,'20250704183454','immagini_di_profilo/hanzo.png','2025-07-04',13),
-(14,'20250704183519','immagini_di_profilo/ana.png','2025-07-04',14),
-(15,'20250704183535','immagini_di_profilo/baptiste.png','2025-07-04',15),
-(16,'20250704183551','immagini_di_profilo/mcree.png','2025-07-04',16),
-(17,'20250704183604','immagini_di_profilo/mei.png','2025-07-04',17),
-(18,'20250704183630','immagini_di_profilo/reinhardt.png','2025-07-04',18),
-(19,'20250704183646','immagini_di_profilo/ashe.png','2025-07-04',19),
+(13,'20250704183454','accounts/foto_profilo/hanzo.png','2025-07-04',13),
+(14,'20250704183519','accounts/foto_profilo/ana.png','2025-07-04',14),
+(15,'20250704183535','accounts/foto_profilo/baptiste.png','2025-07-04',15),
+(16,'20250704183551','accounts/foto_profilo/mcree.png','2025-07-04',16),
+(17,'20250704183604','accounts/foto_profilo/mei.png','2025-07-04',17),
+(18,'20250704183630','accounts/foto_profilo/reinhardt.png','2025-07-04',18),
+(19,'20250704183646','accounts/foto_profilo/ashe.png','2025-07-04',19),
 (20,'20250704183704','','2025-07-04',20),
 (21,'20250704183717','','2025-07-04',21),
 (22,'20250704183729','','2025-07-04',22),
-(23,'20250704183806','immagini_di_profilo/mercy.png','2025-07-04',23),
-(24,'20250704183819','immagini_di_profilo/sigma.png','2025-07-04',24),
-(25,'20250704183837','immagini_di_profilo/illari.png','2025-07-04',25),
+(23,'20250704183806','accounts/foto_profilo/mercy.png','2025-07-04',23),
+(24,'20250704183819','accounts/foto_profilo/sigma.png','2025-07-04',24),
+(25,'20250704183837','accounts/foto_profilo/illari.png','2025-07-04',25),
 (26,'20250704183850','','2025-07-04',26),
 (27,'20250704183859','','2025-07-04',27);
 /*!40000 ALTER TABLE `accounts_profiloutente` ENABLE KEYS */;
@@ -88,10 +88,10 @@ CREATE TABLE `articoli` (
 LOCK TABLES `articoli` WRITE;
 /*!40000 ALTER TABLE `articoli` DISABLE KEYS */;
 INSERT INTO `articoli` VALUES
-(26,'#Festa #Evento','ISEO TORNA DiPINTA','Sabato 10 e domenica 11 maggio 2025 in Piazza Garibaldi a Iseo torna “IseodiPinta”, il Festival della Birra Artigianale. \r\nUn weekend dedicato alla cultura del bere consapevole, con degustazioni e proposte da birrifici italiani e internazionali selezionati per qualità e stile. \r\nUn’occasione aperta a curiosi, appassionati e operatori per scoprire la ricchezza del panorama brassicolo, tra eccellenze locali e sperimentazioni da tutto il mondo.\r\n\r\n11 BIRRIFICI ITALIANI + 5 PUBLICAN con ETICHETTE anche ESTERE\r\nDomenica 11 ci saranno alcuni laboratori / workshop:\r\n• Ore 11:00 – “Le materie prime della birra”. Degustazione guidata con Gabriele Fontana del Birrificio Pagus\r\n• Ore 15:00 – “Sogno Lucido”. Un viaggio tra aromi, suggestioni e ricordi. Con Federico Cesetti Unionbirrai Beer Taster.\r\n• Ore 16:30 – “Pinte consapevoli”. Degustazione birre no alcol e low alcol. Con Valentina Pe’ della Associazione Le Donne della Birra e Unionbirrai Beer Taster\r\nSOLO SU PRENOTAZIONE tramite messaggio Whatsapp al numero 350 5212690.\r\n10€ cadauno, con 3 birre in degustazione.\r\nPagamento in cassa il giorno dell’evento.\r\nDove: Iseo Piazza Garibaldi\r\nOrari:\r\nSabato dalle 17:00 alle 24:00\r\nDomenica 11:00-22:00','2025-07-04 19:16:58.121403','immagini_articoli/immagine_articolo_1.jpg',''),
-(27,'#Evento','FESTIVAL DEI LAGHI EUROPEI – Manca solo 1 settimana!','Si riparte con una nuova edizione ricca di emozioni!\r\n\r\nVenerdì 30 maggio alle 18:30 in Piazza Garibaldi: cerimonia di inaugurazione per dare ufficialmente il via al Festival.\r\nCultura, sapori, tradizioni e tanta bellezza da vivere insieme.\r\n\r\nScopri il programma completo sul sito ufficiale: https://visitlakeiseo.info/festival-dei-laghi-europei/\r\n\r\nNon mancare!','2025-07-04 19:18:36.414032','immagini_articoli/immagine_articolo_3.jpg',''),
-(28,'#Intrattenimento','SUONI DI LUCE | VENERDÌ 30 MAGGIO – ORE 21:30','Porto Gabriele Rosa, Iseo\r\n“Suoni di luce. Musiche da film che illuminano la memoria”\r\nUn viaggio emozionante tra jazz, colonne sonore e grandi successi reinterpretati, avvolti dalla calda luce delle candele.\r\nSul palco, il gruppo “Soggetti Ritrovati 5th”:\r\n- Lara Iacovini – voce\r\n- Fabrizio Zappamiglio – chitarra\r\n- Giuseppe Chirico – tromba\r\n- Marco Mottola – contrabbasso\r\n- Marco Marini – ritmica\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','2025-07-04 19:21:30.317075','immagini_articoli/immagine_articolo_5.jpg',''),
-(29,'','BREVE STOP ALLA CIRCOLAZIONE PER LA MEZZA MARATONA','In occasione della manifestazione sportiva Half Marathon, si informa che il giorno 2 giugno 2025 sarà istituito il divieto di transito nei seguenti orari e tratti stradali:\r\n•	Dalle ore 8:00 alle ore 9:00:\r\no	Via Roma, dall’intersezione con via Martiri della Libertà fino a via Covelo (Comune di Iseo)\r\n•	Dalle ore 8:30 alle ore 9:00:\r\no	Tratto di strada da via Covelo fino al confine con il comune di Sulzano (tratto interessato dalla manifestazione)\r\nSi invita la cittadinanza alla massima collaborazione e si ringrazia per la comprensione.','2025-07-04 19:24:16.648973','immagini_articoli/immagine_articolo_7.jpg','');
+(26,'#Festa #Evento','ISEO TORNA DiPINTA','Sabato 10 e domenica 11 maggio 2025 in Piazza Garibaldi a Iseo torna “IseodiPinta”, il Festival della Birra Artigianale. \r\nUn weekend dedicato alla cultura del bere consapevole, con degustazioni e proposte da birrifici italiani e internazionali selezionati per qualità e stile. \r\nUn’occasione aperta a curiosi, appassionati e operatori per scoprire la ricchezza del panorama brassicolo, tra eccellenze locali e sperimentazioni da tutto il mondo.\r\n\r\n11 BIRRIFICI ITALIANI + 5 PUBLICAN con ETICHETTE anche ESTERE\r\nDomenica 11 ci saranno alcuni laboratori / workshop:\r\n• Ore 11:00 – “Le materie prime della birra”. Degustazione guidata con Gabriele Fontana del Birrificio Pagus\r\n• Ore 15:00 – “Sogno Lucido”. Un viaggio tra aromi, suggestioni e ricordi. Con Federico Cesetti Unionbirrai Beer Taster.\r\n• Ore 16:30 – “Pinte consapevoli”. Degustazione birre no alcol e low alcol. Con Valentina Pe’ della Associazione Le Donne della Birra e Unionbirrai Beer Taster\r\nSOLO SU PRENOTAZIONE tramite messaggio Whatsapp al numero 350 5212690.\r\n10€ cadauno, con 3 birre in degustazione.\r\nPagamento in cassa il giorno dell’evento.\r\nDove: Iseo Piazza Garibaldi\r\nOrari:\r\nSabato dalle 17:00 alle 24:00\r\nDomenica 11:00-22:00','2025-07-04 19:16:58.121403','articoli/immagine_articolo_1.jpg',''),
+(27,'#Evento','FESTIVAL DEI LAGHI EUROPEI – Manca solo 1 settimana!','Si riparte con una nuova edizione ricca di emozioni!\r\n\r\nVenerdì 30 maggio alle 18:30 in Piazza Garibaldi: cerimonia di inaugurazione per dare ufficialmente il via al Festival.\r\nCultura, sapori, tradizioni e tanta bellezza da vivere insieme.\r\n\r\nScopri il programma completo sul sito ufficiale: https://visitlakeiseo.info/festival-dei-laghi-europei/\r\n\r\nNon mancare!','2025-07-04 19:18:36.414032','articoli/immagine_articolo_3.jpg',''),
+(28,'#Intrattenimento','SUONI DI LUCE | VENERDÌ 30 MAGGIO – ORE 21:30','Porto Gabriele Rosa, Iseo\r\n“Suoni di luce. Musiche da film che illuminano la memoria”\r\nUn viaggio emozionante tra jazz, colonne sonore e grandi successi reinterpretati, avvolti dalla calda luce delle candele.\r\nSul palco, il gruppo “Soggetti Ritrovati 5th”:\r\n- Lara Iacovini – voce\r\n- Fabrizio Zappamiglio – chitarra\r\n- Giuseppe Chirico – tromba\r\n- Marco Mottola – contrabbasso\r\n- Marco Marini – ritmica\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','2025-07-04 19:21:30.317075','articoli/immagine_articolo_5.jpg',''),
+(29,'','BREVE STOP ALLA CIRCOLAZIONE PER LA MEZZA MARATONA','In occasione della manifestazione sportiva Half Marathon, si informa che il giorno 2 giugno 2025 sarà istituito il divieto di transito nei seguenti orari e tratti stradali:\r\n•	Dalle ore 8:00 alle ore 9:00:\r\no	Via Roma, dall’intersezione con via Martiri della Libertà fino a via Covelo (Comune di Iseo)\r\n•	Dalle ore 8:30 alle ore 9:00:\r\no	Tratto di strada da via Covelo fino al confine con il comune di Sulzano (tratto interessato dalla manifestazione)\r\nSi invita la cittadinanza alla massima collaborazione e si ringrazia per la comprensione.','2025-07-04 19:24:16.648973','articoli/immagine_articolo_7.jpg','');
 /*!40000 ALTER TABLE `articoli` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -322,7 +322,7 @@ CREATE TABLE `auth_user` (
 LOCK TABLES `auth_user` WRITE;
 /*!40000 ALTER TABLE `auth_user` DISABLE KEYS */;
 INSERT INTO `auth_user` VALUES
-(1,'pbkdf2_sha256$870000$HkteUcQD2YogysM1eDN4qo$Eo4jgHmIx/fznOvpb5SoOvuOe7aDNsPCnPA2y0+gxjc=','2025-07-04 19:11:42.900599',1,'admin','','','',1,1,'2025-06-13 12:10:22.093316'),
+(1,'pbkdf2_sha256$870000$HkteUcQD2YogysM1eDN4qo$Eo4jgHmIx/fznOvpb5SoOvuOe7aDNsPCnPA2y0+gxjc=','2025-07-09 12:08:54.114963',1,'admin','','','',1,1,'2025-06-13 12:10:22.093316'),
 (13,'pbkdf2_sha256$870000$qyZKvG4yiIe7jFyN6wLCed$sVhtbXHCHy9Uwp7K+0OJ07egpqAxoq7uQk9sBOOwL88=','2025-07-04 19:15:11.994193',0,'luca.lucchi@gmail.com','Luca','Lucchi','luca.lucchi@gmail.com',0,1,'2025-07-04 18:34:53.000000'),
 (14,'pbkdf2_sha256$870000$XmhmpcxiEG92Yk45liMA7F$B1CSCZCwJS6HtbNZI8ReTxeB/mKSDw3oBU2Rz0XlR4w=','2025-07-04 18:43:05.966889',0,'alessia.alessiani@yahoo.it','Alessia','Alessiani','alessia.alessiani@yahoo.it',0,1,'2025-07-04 18:35:18.000000'),
 (15,'pbkdf2_sha256$870000$UaLqrD4obIj6k8DTm3Do7Z$yL3moFp716jOnQCJ0b+fiy8OBDmvfrcjhHzDd4JYgHw=','2025-07-04 19:23:06.531336',0,'marco.marchesi@libero.it','Marco','Marchesi','marco.marchesi@libero.it',0,1,'2025-07-04 18:35:35.000000'),
@@ -333,7 +333,7 @@ INSERT INTO `auth_user` VALUES
 (20,'pbkdf2_sha256$870000$DAdvcKspkKHN8ZnVkHITFo$7LWN4U4gFVbrfNRuAlM705MXOVNamOydm+6pMkwHuus=','2025-07-04 19:02:23.569965',0,'maurizio','Maurizio','Mauriziani','maurizio.mauriziani@live.it',0,1,'2025-07-04 18:37:03.495489'),
 (21,'pbkdf2_sha256$870000$t400VEPyKYPcRfuGvaaDMN$Lblju/HhJCG/lT/zQAu5cdJYdg1TDnCpivzm9UON3Vo=','2025-07-04 19:03:08.733988',0,'daniele','Daniele','Danieli','daniele.danieli@inwind.it',0,1,'2025-07-04 18:37:16.000000'),
 (22,'pbkdf2_sha256$870000$rI6w29YTYTDSGe0wY53KBj$dAcSId6ndSOZ5hCK9vM8IjSK7vJzeKViswiOhkZMCqk=','2025-07-04 19:03:49.655381',0,'andrea','Andrea','Andreani','andrea.andreani@iol.it',0,1,'2025-07-04 18:37:29.000000'),
-(23,'pbkdf2_sha256$870000$u1L84Nj60uVmFYRQHJKKFf$8zVBlCcYw4MpMN64ArC/l9PN/mrzKJKQUVbzOWqfXQs=','2025-07-04 19:44:55.820346',0,'sofia','Sofia','Sofiani','sofia.sofiani@tiscali.it',0,1,'2025-07-04 18:38:05.000000'),
+(23,'pbkdf2_sha256$870000$u1L84Nj60uVmFYRQHJKKFf$8zVBlCcYw4MpMN64ArC/l9PN/mrzKJKQUVbzOWqfXQs=','2025-07-07 14:19:29.297978',0,'sofia','Sofia','Sofiani','sofia.sofiani@tiscali.it',0,1,'2025-07-04 18:38:05.000000'),
 (24,'pbkdf2_sha256$870000$oKlthaCIt4BSyvibSmbeUz$ODtftAbWedX75DueyKbeOdoLxb+wQoz8Kef78gzkNIo=','2025-07-04 19:05:23.893419',0,'lorenzo','Lorenzo','Lorenzini','lorenzo.lorenzini@telecom.it',0,1,'2025-07-04 18:38:18.000000'),
 (25,'pbkdf2_sha256$870000$tX1RL89bQVlOHKd7rjvwOp$kRQVioDk/CH90TLK+LnHcD1KO/4HND6u63mlRdgORng=','2025-07-04 19:39:49.379554',0,'gabriella','Gabriella','Gabrielli','gabriella.gabrielli@fastweb.it',0,1,'2025-07-04 18:38:37.000000'),
 (26,'pbkdf2_sha256$870000$kHo9Ov7fjnxB7iBhcbTez8$xhuuzC6SrtD19Knc/bsT8vERIKnb77IcT2y/k+RIscU=','2025-07-04 19:36:20.451387',0,'riccardo','Riccardo','Riccardi','riccardo.riccardi@libero.it',0,1,'2025-07-04 18:38:49.684201'),
@@ -540,7 +540,7 @@ CREATE TABLE `django_migrations` (
   `name` varchar(255) NOT NULL,
   `applied` datetime(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -574,7 +574,10 @@ INSERT INTO `django_migrations` VALUES
 (22,'eventi','0001_initial','2025-06-13 12:09:15.634077'),
 (23,'sessions','0001_initial','2025-06-13 12:09:15.704224'),
 (24,'eventi','0002_evento_posti_massimi','2025-07-01 14:34:18.614457'),
-(25,'eventi','0003_alter_evento_options_remove_evento_date_evento_and_more','2025-07-01 14:34:18.721990');
+(25,'eventi','0003_alter_evento_options_remove_evento_date_evento_and_more','2025-07-01 14:34:18.721990'),
+(26,'accounts','0003_alter_profiloutente_immagine_profilo','2025-07-09 12:08:33.681928'),
+(27,'articoli','0003_alter_articolo_immagine','2025-07-09 12:08:33.691010'),
+(28,'eventi','0004_alter_evento_immagine','2025-07-09 12:08:33.700537');
 /*!40000 ALTER TABLE `django_migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -601,7 +604,8 @@ CREATE TABLE `django_session` (
 LOCK TABLES `django_session` WRITE;
 /*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
 INSERT INTO `django_session` VALUES
-('4ofhndy59rokput1ba6uyuxajnzqj012','.eJxVjD0LwjAUAP9LZinkO89RcBQn55CXl5Jim0LTTOJ_N0IHXe-OezEf2p59q2nzE7Ezk-z0yzDEZypfEWJcW9nrcKA6XJcwzfft0bsSlnRbKc2Xo_-b5FBzP3AUznFQhGhRAulRorFgJPV31NYBCIGIXBmjknHCggQ1WkMESWjN3h8AWTlG:1uQDUe:JGrg1RR0f7hD6m06iWXyYCQ600UwRKWyba__ZePKk04','2025-06-27 23:07:28.181645');
+('4ofhndy59rokput1ba6uyuxajnzqj012','.eJxVjD0LwjAUAP9LZinkO89RcBQn55CXl5Jim0LTTOJ_N0IHXe-OezEf2p59q2nzE7Ezk-z0yzDEZypfEWJcW9nrcKA6XJcwzfft0bsSlnRbKc2Xo_-b5FBzP3AUznFQhGhRAulRorFgJPV31NYBCIGIXBmjknHCggQ1WkMESWjN3h8AWTlG:1uQDUe:JGrg1RR0f7hD6m06iWXyYCQ600UwRKWyba__ZePKk04','2025-06-27 23:07:28.181645'),
+('jhdyyv9oayumvvfxwj2j1lvsjeojly8e','.eJxVjLEKgzAQQP8lc5Hc2cPYsdCxdOocztwFpRrBmKn036vg0K7vPd7beC5r70vWxQ9iLgbM6Zd1HF6adsEhzCWtuTpQrm4TD-NjeW5d4knvs-h4Pfq_Sc-539foEKADV0cnbX0WrLlxjaKSE4q2EQtgFRFlgzY4stBGshQlthDJfL7X2Ti0:1uZTba:n6bIBpQ7K0b0ttxNV8cySoDzVpUdZrPpVHtf0nk0Vx8','2025-07-23 12:08:54.117908');
 /*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -627,7 +631,7 @@ CREATE TABLE `eventi` (
   PRIMARY KEY (`id`),
   KEY `eventi_organizzatore_id_960575c8_fk_accounts_profiloutente_id` (`organizzatore_id`),
   CONSTRAINT `eventi_organizzatore_id_960575c8_fk_accounts_profiloutente_id` FOREIGN KEY (`organizzatore_id`) REFERENCES `accounts_profiloutente` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -637,10 +641,10 @@ CREATE TABLE `eventi` (
 LOCK TABLES `eventi` WRITE;
 /*!40000 ALTER TABLE `eventi` DISABLE KEYS */;
 INSERT INTO `eventi` VALUES
-(27,'sBANDAndo sul Lago','Nel cuore di Iseo, gli allievi dell’Accademia Musicale “Aureliano Bettoni” si esibiranno in un saggio itinerante aperto al pubblico: un momento speciale per condividere il loro percorso e il loro amore per la musica.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Centro storico di Iseo','immagini_eventi/immagine_evento_1_RBVhdzl.jpg',0,'IN_ATTESA',13,30,'2025-07-31 16:00:00.000000','2025-07-31 14:30:00.000000'),
-(28,'ARIE SUL LAGO','Lirica e operetta sul Lago d’Iseo!\r\nNell’ambito del progetto Onde Musicali, un concerto dedicato alle arie ambientate sui laghi europei.\r\nCon Elena d’Angelo (soubrette soprano), Matteo Mazzoli (comico baritono) e cantanti lirici vincitori di concorsi internazionali. Al pianoforte Sem Ceritelli.\r\n\r\nUna serata elegante tra emozioni, bel canto e atmosfere da sogno.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Sagrato della Pieve, Iseo','immagini_eventi/immagine_evento_2.jpg',0,'CONCLUSO',17,25,'2025-06-01 21:00:00.000000','2025-06-01 19:00:00.000000'),
-(29,'SANREMO STORY','Fabry Valli & The Red Dolphins Big Band portano sul lago la magia del Festival di Sanremo!\r\nUn viaggio musicale dagli anni ’50 a oggi, tra hit indimenticabili e arrangiamenti in stile big band, per raccontare oltre 70 anni di storia italiana attraverso le canzoni che ci hanno fatto sognare.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Porto Gabriele Rosa, Iseo','immagini_eventi/immagine_evento_3_OSyyusd.jpg',0,'CONCLUSO',14,20,'2025-05-25 18:30:00.000000','2025-05-25 16:30:00.000000'),
-(30,'A ISEO IL JAZZ È UNA FIABA','Le fiabe del Jazz: John Coltrane raccontato ai bambini\r\nSpettacolo-laboratorio di narrazione e musica \r\nClaudio Comini, voce narrante\r\nGuido Bombardieri, sax alto e soprano\r\n\r\nTratto dalla serie di audiolibri “le Fiabe del Jazz” di Roberto Piumini e Claudio Comini, edizioni Curci Yung\r\nIllustrazioni di Fabio Magnasciutti','Sala civica Castello Oldofredi, Iseo','immagini_eventi/immagine_evento_5.jpg',0,'IN_ATTESA',18,40,'2025-07-18 10:00:00.000000','2025-07-17 08:00:00.000000');
+(27,'sBANDAndo sul Lago','Nel cuore di Iseo, gli allievi dell’Accademia Musicale “Aureliano Bettoni” si esibiranno in un saggio itinerante aperto al pubblico: un momento speciale per condividere il loro percorso e il loro amore per la musica.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Centro storico di Iseo','eventi/immagine_evento_1.jpg',0,'IN_ATTESA',13,30,'2025-07-31 16:00:00.000000','2025-07-31 14:30:00.000000'),
+(28,'ARIE SUL LAGO','Lirica e operetta sul Lago d’Iseo!\r\nNell’ambito del progetto Onde Musicali, un concerto dedicato alle arie ambientate sui laghi europei.\r\nCon Elena d’Angelo (soubrette soprano), Matteo Mazzoli (comico baritono) e cantanti lirici vincitori di concorsi internazionali. Al pianoforte Sem Ceritelli.\r\n\r\nUna serata elegante tra emozioni, bel canto e atmosfere da sogno.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Sagrato della Pieve, Iseo','eventi/immagine_evento_2.jpg',0,'CONCLUSO',17,25,'2025-06-01 21:00:00.000000','2025-06-01 19:00:00.000000'),
+(29,'SANREMO STORY','Fabry Valli & The Red Dolphins Big Band portano sul lago la magia del Festival di Sanremo!\r\nUn viaggio musicale dagli anni ’50 a oggi, tra hit indimenticabili e arrangiamenti in stile big band, per raccontare oltre 70 anni di storia italiana attraverso le canzoni che ci hanno fatto sognare.\r\nScopri il programma completo del festival su: https://visitlakeiseo.info/festival-dei-laghi-europei/','Porto Gabriele Rosa, Iseo','eventi/immagine_evento_3.jpg',0,'CONCLUSO',14,20,'2025-05-25 18:30:00.000000','2025-05-25 16:30:00.000000'),
+(30,'A ISEO IL JAZZ È UNA FIABA','Le fiabe del Jazz: John Coltrane raccontato ai bambini\r\nSpettacolo-laboratorio di narrazione e musica \r\nClaudio Comini, voce narrante\r\nGuido Bombardieri, sax alto e soprano\r\n\r\nTratto dalla serie di audiolibri “le Fiabe del Jazz” di Roberto Piumini e Claudio Comini, edizioni Curci Yung\r\nIllustrazioni di Fabio Magnasciutti','Sala civica Castello Oldofredi, Iseo','eventi/immagine_evento_5.jpg',0,'IN_ATTESA',23,40,'2025-07-18 10:00:00.000000','2025-07-17 09:00:00.000000');
 /*!40000 ALTER TABLE `eventi` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -660,7 +664,7 @@ CREATE TABLE `evento_iscritti` (
   KEY `evento_iscritti_profiloutente_id_058cb414_fk_accounts_` (`profiloutente_id`),
   CONSTRAINT `evento_iscritti_evento_id_b3262084_fk_eventi_id` FOREIGN KEY (`evento_id`) REFERENCES `eventi` (`id`),
   CONSTRAINT `evento_iscritti_profiloutente_id_058cb414_fk_accounts_` FOREIGN KEY (`profiloutente_id`) REFERENCES `accounts_profiloutente` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -681,4 +685,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-07 15:46:01
+-- Dump completed on 2025-07-09 22:49:12
