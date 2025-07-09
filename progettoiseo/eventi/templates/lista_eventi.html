@@ -78,7 +78,7 @@
                         <!-- Luogo -->
                         <p class="mb-2"><i class="fas fa-map-marker-alt me-1"></i> {{ event.luogo }}</p>
                         <!-- Stato -->
-                        <p class="mb-2"><strong>Stato:</strong> 
+                        <p class="mb-2"><strong>Stato:</strong>
                             {% if event.stato == 'IN_ATTESA' %}In attesa
                             {% elif event.stato == 'CONCLUSO' %}Concluso
                             {% elif event.stato == 'AL_COMPLETO' %}Al completo
@@ -98,15 +98,17 @@
                         <div class="mt-auto">
                             <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
                                 {% if is_direttivo %}
-                                <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
-                                    <i class="fas fa-edit me-1"></i>Modifica
-                                </a>
-                                <a href="{% url 'evento-delete' event.pk %}"
-                                   class="btn btn-outline-danger btn-sm"
-                                   data-modal="delete"
-                                   onclick="event.stopPropagation();">
-                                   <i class="fas fa-trash me-1"></i>Elimina
-                                </a>
+                                    {% if event.stato != 'CONCLUSO' %}
+                                        <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+                                            <i class="fas fa-edit me-1"></i>Modifica
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'evento-delete' event.pk %}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       data-modal="delete"
+                                       onclick="event.stopPropagation();">
+                                       <i class="fas fa-trash me-1"></i>Elimina
+                                    </a>
                                 {% endif %}
                             </div>
                         </div>

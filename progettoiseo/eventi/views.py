@@ -104,6 +104,12 @@ def event_update(request, pk):
     event = get_object_or_404(Evento, pk=pk)
     if not is_direttivo:
         return redirect('lista_eventi')
+
+    # Blocca la modifica di eventi conclusi (l'eliminazione rimane possibile)
+    if event.stato == 'CONCLUSO':
+        messages.error(request, 'Non è possibile modificare un evento concluso. L\'eliminazione rimane possibile dalla pagina di dettaglio.')
+        return redirect('evento-detail', pk=event.pk)
+
     if request.method == 'POST':
         form = EventoForm(request.POST, request.FILES, instance=event)
         if form.is_valid():

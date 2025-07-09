@@ -18,7 +18,7 @@
         <div class="col-lg-8">
             <!-- Titolo -->
             <h1 class="display-4 mb-4 event-title">{{ event.titolo }}</h1>
-            
+
             <!-- Metadati dell'evento -->
             <div class="event-meta mb-4 p-3 bg-light rounded">
                 <div class="row align-items-center">
@@ -68,8 +68,8 @@
         <div class="col-lg-4 mb-4">
             <div class="event-image-container">
                 {% if event.immagine %}
-                    <img src="{{ event.immagine.url }}" 
-                         alt="{{ event.titolo }}" 
+                    <img src="{{ event.immagine.url }}"
+                         alt="{{ event.titolo }}"
                          class="img-fluid rounded shadow event-detail-image">
                 {% endif %}
             </div>
@@ -90,12 +90,18 @@
     <!-- Pulsanti di azione -->
     <div class="row mt-4 mb-5">
         <div class="col-12">
-            <div class="d-flex justify-content-end gap-2">
+            <div class="d-flex justify-content-end align-items-center gap-2">
                 {% if is_direttivo %}
-                    <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-edit me-1"></i>Modifica
-                    </a>
-                    <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger">
+                    {% if event.stato != 'CONCLUSO' %}
+                        <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-1"></i>Modifica
+                        </a>
+                    {% else %}
+                        <div class="alert alert-info mb-0 py-2 px-3">
+                            <small><i class="fas fa-info-circle me-1"></i>Gli eventi conclusi non possono essere modificati.</small>
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'evento-delete' event.pk %}" class="btn btn-outline-danger" data-modal="delete">
                         <i class="fas fa-trash me-1"></i>Elimina
                     </a>
                 {% endif %}
@@ -137,6 +143,28 @@
         </div>
         {% endif %}
     {% endif %}
+
+    <!-- Modal Eliminazione Evento -->
+    <div class="modal fade" id="deleteEventModal" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteEventModalLabel">
+                        Conferma eliminazione
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body">
+                    Sei sicuro di voler eliminare l'evento <strong id="modal-event-title"></strong>?
+                    <p class="text-danger mt-2 mb-0"><small>Questa azione non può essere annullata.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <a href="#" id="modal-delete-btn" class="btn btn-danger">Elimina</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -223,11 +251,11 @@
         position: static;
         margin-bottom: 2rem;
     }
-    
+
     .event-detail-image {
         max-height: 250px;
     }
-    
+
     .event-image-placeholder {
         height: 200px;
     }
@@ -237,21 +265,21 @@
     .event-title {
         font-size: 2rem;
     }
-    
+
     .event-meta {
         font-size: 0.9rem;
     }
-    
+
     .event-text {
         font-size: 1rem;
         text-align: left;
     }
-    
+
     .d-flex.gap-2 {
         flex-direction: column;
         gap: 0.5rem !important;
     }
-    
+
     .d-flex.gap-2 .btn {
         width: 100%;
     }
@@ -264,12 +292,12 @@
     .event-meta {
         display: none !important;
     }
-    
+
     .event-title {
         font-size: 24pt;
         margin-bottom: 12pt;
     }
-    
+
     .event-text {
         font-size: 12pt;
         line-height: 1.5;
@@ -332,6 +360,67 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Gestione modal eliminazione evento
+        const deleteBtn = document.querySelector('.btn-outline-danger[data-modal="delete"]');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const eventTitle = document.querySelector('.event-title').textContent.trim();
+                const deleteUrl = this.getAttribute('href');
+
+                document.getElementById('modal-event-title').textContent = eventTitle;
+                document.getElementById('modal-delete-btn').setAttribute('href', deleteUrl);
+
+                const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+                modal.show();
+            });
+        }
+
+        // Gestione click su "Elimina" nel modal
+        document.getElementById('modal-delete-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const deleteUrl = this.getAttribute('href');
+            const csrftoken = getCookie('csrftoken');
+
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Chiudi il modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+                    modal.hide();
+                    // Reindirizza alla lista eventi dopo l'eliminazione
+                    window.location.href = "{% url 'lista_eventi' %}";
+                } else {
+                    alert('Errore durante l\'eliminazione.');
+                }
+            })
+            .catch(() => {
+                alert('Errore di rete.');
+            });
+        });
+
+        // Funzione per ottenere il CSRF token dai cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 });
 </script>
 {% endblock %}
