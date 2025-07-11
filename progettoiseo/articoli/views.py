@@ -3,11 +3,12 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import ProfiloUtente
 from .models import Articolo
 from .forms import InserimentoArticoloForm
-from django.shortcuts import get_object_or_404, redirect, render
+
 
 class ArticleListView(ListView):
     model = Articolo

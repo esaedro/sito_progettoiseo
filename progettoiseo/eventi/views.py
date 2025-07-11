@@ -1,20 +1,17 @@
-
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django import forms
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.urls import path
-from . import views
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models.signals import post_save, m2m_changed, pre_delete, pre_save
 from django.dispatch import receiver
-from .models import Evento
-from django.contrib import messages
-from django.urls import reverse
-from django import forms
-from django.shortcuts import get_object_or_404
-from .forms import EventoForm
 from django.http import JsonResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import path, reverse
 from django.utils import timezone
+
+from . import views
+from .forms import EventoForm
+from .models import Evento
 
 def event_list(request):
     # Imposta il filtro di default su IN_ATTESA se non specificato

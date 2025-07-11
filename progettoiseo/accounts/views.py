@@ -1,14 +1,14 @@
-from importlib.resources import contents
 from datetime import datetime
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from .forms import ModificaProfiloForm, ModificaPasswordForm, RegistrazioneForm, LoginForm
+
 from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
-from .models import ProfiloUtente
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import JsonResponse
+from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
+
+from .forms import LoginForm, ModificaProfiloForm, ModificaPasswordForm, RegistrazioneForm
+from .models import ProfiloUtente
 # Create your views here.
 
 def custom_login(request):
