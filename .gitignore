@@ -174,7 +174,8 @@ cython_debug/
 .pypirc
 
 # File che servono a esaedro
-shell.nix
+devbox.json
+devbox.lock
 .envrc
 
 # File che riguardano impostazioni locali (come quelle del database)
