@@ -4,25 +4,25 @@ Sito web ufficiale per l'associazione Progettoiseo
 # Espansione del progetto con il corso di Interazione Persona-Calcolatore
 
 ## 1. Descrizione del sistema
-- [ ] Descrizione generale
-- [ ] Descrizione delle singole pagine + immagini
-	- [ ] Home
-	- [ ] Lista articoli
-	- [ ] Lista eventi
-	- [ ] Singolo articolo
-	- [ ] Singolo evento
-	- [ ] Profilo personale
-	- [ ] Form creazione articolo
-	- [ ] Form creazione evento
-	- [ ] Login
-	- [ ] Creazione di un utente tesserato
-	- [ ] Pagine informative
+- [x] Descrizione generale
+- [x] Descrizione delle singole pagine + immagini
+	- [x] Home
+	- [x] Lista articoli
+	- [x] Lista eventi
+	- [x] Singolo articolo
+	- [x] Singolo evento
+	- [x] Profilo personale
+	- [x] Form creazione articolo
+	- [x] Form creazione evento
+	- [x] Login
+	- [x] Creazione di un utente tesserato
+	- [x] Pagine informative
 
 ## 2. Profili utente e personas
-- [ ] Profili utente
-	- [ ] Membro del direttivo
-	- [ ] Tesserato
-	- [ ] Non tesserato
+- [x] Profili utente
+	- [x] Membro del direttivo
+	- [x] Tesserato
+	- [x] Non tesserato
 - [ ] Personas
 	- [ ] 1
 	- [ ] 2
