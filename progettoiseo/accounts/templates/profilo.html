@@ -205,22 +205,94 @@
         <!-- Eventi a cui sono iscritto -->
         <div class="card mt-4">
             <div class="card-header">
-                <h4 class="mb-0">Eventi a cui sei iscritto</h4>
+                <h4 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Eventi a cui sei iscritto
+                </h4>
             </div>
             <div class="card-body">
                 {% if profilo_utente.eventi_iscritti.all %}
-                    <ul class="list-group">
+                    <div class="list-group list-group-flush">
                         {% for evento in profilo_utente.eventi_iscritti.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <a href="{% url 'evento-detail' evento.pk %}">{{ evento.titolo }}</a>
-                                <span class="badge bg-primary">{{ evento.inizio_evento|date:'d/m/Y H:i' }}</span>
-                            </li>
-                        {% empty %}
-                            <li class="list-group-item">Non sei iscritto ad alcun evento.</li>
+                            <div class="list-group-item px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1 me-3">
+                                        <h5 class="mb-2">
+                                            {{ evento.titolo }}
+                                            {% if evento.stato == 'ANNULLATO' %}
+                                                <span class="badge bg-danger ms-2">
+                                                    <i class="fas fa-times-circle me-1"></i>Annullato
+                                                </span>
+                                            {% endif %}
+                                        </h5>
+                                        <div class="text-muted small mb-2">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ evento.inizio_evento|date:'d/m/Y H:i' }}
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ evento.luogo }}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-shrink-0">
+                                        <a href="{% url 'evento-detail' evento.pk %}" class="btn btn-primary btn">
+                                            <i class="fas fa-eye me-1"></i>Dettagli
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn" data-bs-toggle="modal" data-bs-target="#confermaDisiscrizioneModal{{ evento.pk }}">
+                                            <i class="fas fa-user-minus me-1"></i>Disiscrivi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal di conferma disiscrizione per questo evento -->
+                            <div class="modal fade" id="confermaDisiscrizioneModal{{ evento.pk }}" tabindex="-1" aria-labelledby="confermaDisiscrizioneModalLabel{{ evento.pk }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-warning text-dark">
+                                            <h5 class="modal-title" id="confermaDisiscrizioneModalLabel{{ evento.pk }}">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                Conferma Disiscrizione
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fas fa-user-minus display-4 text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-2">Sei sicuro di volerti disiscrivere da questo evento?</h6>
+                                                    <p class="mb-1"><strong>{{ evento.titolo }}</strong></p>
+                                                    <p class="text-muted mb-0 small">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Potrai comunque iscriverti nuovamente in seguito se ci sono ancora posti disponibili.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-1"></i>
+                                                Annulla
+                                            </button>
+                                            <form method="post" action="{% url 'evento-unregister' evento.pk %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-user-minus me-1"></i>
+                                                    Conferma Disiscrizione
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">Non sei iscritto ad alcun evento.</div>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Non sei iscritto ad alcun evento.
+                    </div>
                 {% endif %}
             </div>
         </div>
