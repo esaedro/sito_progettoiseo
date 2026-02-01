@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load rich_text %}
 {% block content %}
 <div class="container mt-4">
     <!-- Breadcrumb per navigazione -->
@@ -9,7 +10,7 @@
                     <i class="fas fa-arrow-left me-1"></i>Torna alla lista
                 </a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">{{ article.titolo|truncatechars:50 }}</li>
+            <!-- <li class="breadcrumb-item active" aria-current="page">{{ article.titolo|truncatechars:50 }}</li> -->
         </ol>
     </nav>
 
@@ -27,15 +28,20 @@
                             <i class="fas fa-calendar-alt text-muted me-2"></i>
                             <strong>Data:</strong> {{ article.data_pubblicazione|date:"d F Y" }}
                         </p>
-                        {% if article.autori.all %}
-                            <p class="mb-0">
-                                <i class="fas fa-users text-muted me-2"></i>
-                                <strong>Autori:</strong>
+                        <p class="mb-0">
+                            <i class="fas fa-users text-muted me-2"></i>
+                            <strong>Autori:</strong>
+                            {% if article.autori.exists %}
                                 {% for autore in article.autori.all %}
                                     {{ autore.user.get_full_name|default:autore.user.username }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
-                            </p>
-                        {% endif %}
+                                {% if article.autori_eliminati %}, {{ article.autori_eliminati }}{% endif %}
+                            {% elif article.autori_eliminati %}
+                                {{ article.autori_eliminati }}
+                            {% else %}
+                                Direttivo Progetto Iseo
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="col-md-6">
                         {% if article.tag %}
@@ -55,9 +61,14 @@
         <div class="col-lg-4 mb-4">
             <div class="article-image-container">
                 {% if article.immagine %}
-                    <img src="{{ article.immagine.url }}" 
-                         alt="{{ article.titolo }}" 
-                         class="img-fluid rounded shadow article-detail-image">
+                    <div class="article-image-zoom" role="button" tabindex="0" aria-label="Ingrandisci immagine articolo" data-image-url="{{ article.immagine.url }}" data-image-title="{{ article.titolo|escape }}">
+                        <img src="{{ article.immagine.url }}" 
+                             alt="{{ article.titolo }}" 
+                             class="img-fluid rounded shadow article-detail-image">
+                        <div class="article-image-overlay" aria-hidden="true">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -68,7 +79,7 @@
         <div class="col-12">
             <div class="article-content bg-white p-4 rounded shadow-sm">
                 <div class="article-text">
-                    {{ article.testo|linebreaks }}
+                    {{ article.testo|rich_text }}
                 </div>
             </div>
         </div>
@@ -79,7 +90,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-end gap-2">
                 {% if perms.articoli.change_articolo %}
-                    <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'article-edit' article.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Modifica
                     </a>
                 {% endif %}
@@ -94,6 +105,22 @@
         </div>
     </div>
 </div>
+
+<!-- Modale Bootstrap per zoom immagine articolo -->
+<div class="modal fade" id="articleImageModal" tabindex="-1" aria-labelledby="articleImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="articleImageModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body d-flex justify-content-center align-items-center" style="min-height:300px;">
+                <img id="articleImageModalImg" src="" alt="" style="max-width:100%; max-height:70vh; object-fit:contain; border-radius:8px; background:#fff;">
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Eliminazione Articolo -->
 <div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-labelledby="deleteArticleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -121,6 +148,37 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Zoom immagine articolo
+    const zoomContainer = document.querySelector('.article-image-zoom');
+    if (zoomContainer) {
+        const imgUrl = zoomContainer.getAttribute('data-image-url');
+        const imgTitle = zoomContainer.getAttribute('data-image-title') || '';
+        const openModal = function() {
+            const modalEl = document.getElementById('articleImageModal');
+            const modalTitle = document.getElementById('articleImageModalLabel');
+            const modalImg = document.getElementById('articleImageModalImg');
+            if (!modalEl || !modalImg) return;
+
+            modalTitle.textContent = imgTitle;
+            modalImg.src = imgUrl;
+            modalImg.alt = imgTitle;
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        };
+
+        zoomContainer.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
+        });
+
+        zoomContainer.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openModal();
+            }
+        });
+    }
+
     // Mostra il modal quando si clicca su "Elimina"
     const deleteBtn = document.querySelector('[data-modal="delete"]');
     if (deleteBtn) {
@@ -158,7 +216,40 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: auto;
     max-height: 400px;
-    object-fit: cover;
+    object-fit: contain; /* cover/contain; invece non croppa 1:1 */
+}
+
+.article-image-zoom {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    cursor: zoom-in;
+}
+
+.article-image-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: 2rem;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 0.375rem; /* allineato al rounded di bootstrap */
+    pointer-events: none;
+}
+
+.article-image-zoom:hover .article-image-overlay,
+.article-image-zoom:focus-visible .article-image-overlay {
+    opacity: 1;
+}
+
+.article-image-zoom:focus-visible {
+    outline: 3px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 4px;
+    border-radius: 0.5rem;
 }
 
 .article-image-placeholder {
@@ -204,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .breadcrumb {
     background-color: transparent;
+    font-size: 1.2rem; /* Font size torna alla lista */
     padding: 0;
 }
 

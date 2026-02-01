@@ -3,7 +3,8 @@
 {% block content %}
 <div class="container mt-4">
   <h2>{% if form.instance.pk %}Modifica articolo{% else %}Crea un nuovo articolo{% endif %}</h2>
-  <form method="post" enctype="multipart/form-data">
+  <p class="text-muted mb-3"><small><span class="required-asterisk" aria-hidden="true">*</span> I campi contrassegnati con l'asterisco sono obbligatori.</small></p>
+  <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     
     <div class="row">
@@ -12,9 +13,8 @@
         <!-- Titolo -->
         <div class="mb-3">
           <label for="{{ form.titolo.id_for_label }}" class="form-label">
-            <strong>Titolo:</strong>
+            <strong>Titolo <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.titolo }}
           {% if form.titolo.errors %}
             <div class="text-danger">
               {% for error in form.titolo.errors %}
@@ -22,15 +22,32 @@
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.titolo }}
         </div>
 
         <!-- Autori -->
         <div class="mb-3">
-          <label class="form-label">
-            <strong>Autori:</strong>
+          <label class="form-label d-flex justify-content-between align-items-end w-100">
+            <strong>Autori <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <small class="text-muted">(Si può pubblicare a nome dell'organizzazione anziché specificare tutti i membri del direttivo)</small>
           </label>
+          {% if form.autori.errors %}
+            <div class="text-danger mb-2">
+              {% for error in form.autori.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
           <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
             <div class="row">
+              <div class="col-12 mb-2">
+                <div class="form-check">
+                  {{ form.a_nome_organizzazione }}
+                  <label class="form-check-label" for="{{ form.a_nome_organizzazione.id_for_label }}">
+                    A nome dell'organizzazione
+                  </label>
+                </div>
+              </div>
               {% for choice in form.autori %}
                 <div class="col-md-4 col-sm-6 mb-2">
                   <div class="form-check">
@@ -43,58 +60,62 @@
               {% endfor %}
             </div>
           </div>
-          {% if form.autori.errors %}
-            <div class="text-danger">
-              {% for error in form.autori.errors %}
-                <small>{{ error }}</small>
-              {% endfor %}
-            </div>
-          {% endif %}
         </div>
 
         <!-- Tag -->
         <div class="mb-3">
           <label for="{{ form.tag.id_for_label }}" class="form-label">
-            <strong>Tag: si scrivono con #</strong>
+            <strong>Tag (si scrivono con #)</strong>
           </label>
-          {{ form.tag }}
           {% if form.tag.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.tag.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          <div class="position-relative">
+            {{ form.tag }}
+            <div id="tag-suggestions" class="tag-suggestions list-group" style="display:none;"></div>
+            {{ existing_tags|json_script:"existing-tags-data" }}
+          </div>
         </div>
 
         <!-- Immagine -->
         <div class="mb-3">
-          <label for="{{ form.immagine.id_for_label }}" class="form-label">
-            <strong>Immagine: &lt;tasto per caricare un'immagine&gt;</strong>
+          <label class="form-label">
+            <strong>Immagine</strong>
           </label>
-          {{ form.immagine }}
           {% if form.immagine.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.immagine.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.immagine }}
         </div>
 
         <!-- Testo -->
         <div class="mb-4">
           <label for="{{ form.testo.id_for_label }}" class="form-label">
-            <strong>Testo:</strong>
+            <strong>Testo <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.testo }}
           {% if form.testo.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.testo.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {# Campo reale (salvato a DB). Lo teniamo nascosto e lo sincronizziamo con l'editor WYSIWYG. #}
+          <div class="d-none">
+            {{ form.testo }}
+          </div>
+
+          {# Editor WYSIWYG #}
+          <div id="testo-editor" class="bg-white"></div>
+          <div class="form-text">Usa la toolbar per grassetto e sottolineato.</div>
         </div>
       </div>
 
@@ -104,7 +125,11 @@
           <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
             Salva
           </button>
-          <a href="{% url 'article-list' %}" class="btn btn-secondary">Annulla</a>
+          {% if request.GET.next and request.GET.next|slice:":1" == "/" %}
+            <a href="{{ request.GET.next }}" class="btn btn-secondary">Annulla</a>
+          {% else %}
+            <a href="{% url 'article-list' %}" class="btn btn-secondary">Annulla</a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -124,6 +149,29 @@ textarea.form-control {
     resize: vertical;
 }
 
+/* Quill */
+#testo-editor {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.ql-toolbar.ql-snow {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.ql-container.ql-snow {
+  border: 0;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.ql-editor {
+  min-height: 240px;
+}
+
 .btn-success {
     background-color: #28a745;
     border-color: #28a745;
@@ -133,5 +181,271 @@ textarea.form-control {
     font-weight: normal;
     margin-bottom: 5px;
 }
+
+.required-asterisk {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+/* Dropdown suggerimenti tag */
+.tag-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-width: 360px; /* più corto in larghezza */
+  max-height: 190px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1050;
+}
+
+.tag-suggestions .list-group-item {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fbfbfc; /* leggermente diverso dal bianco */
+}
+
+.tag-suggestions .list-group-item:last-child {
+  border-bottom: 0;
+}
+
+.tag-suggestions .list-group-item:hover,
+.tag-suggestions .list-group-item:focus {
+  background: #eef2ff;
+}
 </style>
+
+{# Quill (CDN) #}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const orgCheckbox = document.getElementById('{{ form.a_nome_organizzazione.id_for_label }}');
+    const authorCheckboxes = Array.from(document.querySelectorAll('input[name="autori"]'));
+
+    if (!orgCheckbox || authorCheckboxes.length === 0) return;
+
+    function uncheckOrgIfAnyAuthorSelected() {
+      const anySelected = authorCheckboxes.some(cb => cb.checked);
+      if (anySelected) orgCheckbox.checked = false;
+    }
+
+    function uncheckAllAuthorsIfOrgSelected() {
+      if (!orgCheckbox.checked) return;
+      authorCheckboxes.forEach(cb => { cb.checked = false; });
+    }
+
+    // Se seleziono un autore -> deseleziona "a nome dell'organizzazione"
+    authorCheckboxes.forEach(cb => {
+      cb.addEventListener('change', uncheckOrgIfAnyAuthorSelected);
+    });
+
+    // Se seleziono "a nome dell'organizzazione" -> deseleziona tutti gli autori
+    orgCheckbox.addEventListener('change', uncheckAllAuthorsIfOrgSelected);
+
+    // Stato iniziale coerente in caso di pre-compilazione
+    uncheckAllAuthorsIfOrgSelected();
+    uncheckOrgIfAnyAuthorSelected();
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const testoField = document.getElementById('{{ form.testo.id_for_label }}');
+    const editorEl = document.getElementById('testo-editor');
+    if (!testoField || !editorEl || typeof Quill === 'undefined') return;
+
+    // Assicura che il textarea non interferisca con Bootstrap.
+    testoField.setAttribute('aria-hidden', 'true');
+
+    const quill = new Quill(editorEl, {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'underline', 'italic'],
+          ['link'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['clean']
+        ]
+      }
+    });
+
+    function syncHiddenField() {
+      const plain = (quill.getText() || '').replace(/\s+/g, ' ').trim();
+      if (!plain) {
+        testoField.value = '';
+      } else {
+        testoField.value = quill.root.innerHTML;
+      }
+    }
+
+    // Carica contenuto esistente (in modifica)
+    function decodeHtmlEntities(str) {
+      if (!str) return '';
+      const ta = document.createElement('textarea');
+      ta.innerHTML = str;
+      return ta.value;
+    }
+
+    let initial = (testoField.value || '').trim();
+    if (initial && initial.indexOf('<') === -1 && initial.indexOf('&lt;') !== -1) {
+      initial = decodeHtmlEntities(initial);
+    }
+
+    if (initial) {
+      // Se è testo semplice senza tag, mettilo come testo per preservare i caratteri.
+      if (initial.indexOf('<') === -1) {
+        quill.setText(initial);
+      } else {
+        quill.root.innerHTML = initial;
+      }
+    }
+
+    // Mantieni il textarea sempre sincronizzato (evita blocco submit per required + textarea nascosta)
+    syncHiddenField();
+    quill.on('text-change', syncHiddenField);
+
+    // Sincronizza verso il campo reale prima del submit
+    const formEl = testoField.closest('form');
+    if (formEl) {
+      formEl.addEventListener('submit', function () {
+        syncHiddenField();
+      });
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tagInput = document.getElementById('{{ form.tag.id_for_label }}');
+    const suggestionsEl = document.getElementById('tag-suggestions');
+
+    let existingTags = [];
+    const existingTagsEl = document.getElementById('existing-tags-data');
+    if (existingTagsEl && existingTagsEl.textContent) {
+      try {
+        existingTags = JSON.parse(existingTagsEl.textContent);
+      } catch (e) {
+        existingTags = [];
+      }
+    }
+
+    if (!tagInput || !suggestionsEl || existingTags.length === 0) return;
+
+    function normalizeTagValue(s) {
+      return (s || '').replace(/^#+/, '').trim().toLowerCase();
+    }
+
+    function getCurrentFragment(value, cursorPos) {
+      const left = value.slice(0, cursorPos);
+      const lastSpace = left.lastIndexOf(' ');
+      const start = lastSpace === -1 ? 0 : lastSpace + 1;
+      return { start, text: value.slice(start, cursorPos) };
+    }
+
+    function currentTagSet(value) {
+      const parts = (value || '').split(/\s+/).filter(Boolean);
+      const set = new Set();
+      parts.forEach(p => {
+        const n = normalizeTagValue(p);
+        if (n) set.add(n);
+      });
+      return set;
+    }
+
+    function insertTag(tagWithHash) {
+      const cursorPos = tagInput.selectionStart ?? tagInput.value.length;
+      const frag = getCurrentFragment(tagInput.value, cursorPos);
+      const tagNorm = normalizeTagValue(tagWithHash);
+      const existing = currentTagSet(tagInput.value);
+
+      // Evita duplicati (case-insensitive)
+      if (tagNorm && existing.has(tagNorm)) {
+        hideSuggestions();
+        return;
+      }
+
+      const before = tagInput.value.slice(0, frag.start);
+      const after = tagInput.value.slice(cursorPos);
+
+      const needsSpaceBefore = before.length > 0 && !before.endsWith(' ');
+      const needsSpaceAfter = after.length === 0 || !after.startsWith(' ');
+      const insertion = (needsSpaceBefore ? ' ' : '') + tagWithHash + (needsSpaceAfter ? ' ' : '');
+
+      // Sostituisce il frammento corrente (dopo l'ultimo spazio) con il tag selezionato
+      const newValue = before + insertion + after;
+
+      const normalized = newValue.replace(/\s+/g, ' ');
+      tagInput.value = normalized;
+
+      // Metti il cursore subito dopo il tag inserito (e lo spazio, se aggiunto)
+      const cursorTarget = (before + insertion).replace(/\s+/g, ' ').length;
+      tagInput.setSelectionRange(cursorTarget, cursorTarget);
+      tagInput.focus();
+      hideSuggestions();
+    }
+
+    function renderSuggestions(filterText) {
+      const fragNorm = normalizeTagValue(filterText);
+      const already = currentTagSet(tagInput.value);
+
+      const candidates = existingTags
+        .filter(t => {
+          const n = normalizeTagValue(t);
+          if (!n) return false;
+          if (already.has(n)) return false;
+          if (!fragNorm) return true;
+          return n.includes(fragNorm);
+        })
+        .slice(0, 50);
+
+      suggestionsEl.innerHTML = '';
+      if (candidates.length === 0) {
+        hideSuggestions();
+        return;
+      }
+
+      candidates.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'list-group-item list-group-item-action py-2';
+        btn.textContent = t;
+        btn.addEventListener('mousedown', function (e) {
+          // mousedown per evitare che blur chiuda prima del click
+          e.preventDefault();
+          insertTag(t);
+        });
+        suggestionsEl.appendChild(btn);
+      });
+
+      suggestionsEl.style.display = 'block';
+    }
+
+    function hideSuggestions() {
+      suggestionsEl.style.display = 'none';
+    }
+
+    function updateSuggestions() {
+      const cursorPos = tagInput.selectionStart ?? tagInput.value.length;
+      const frag = getCurrentFragment(tagInput.value, cursorPos);
+      renderSuggestions(frag.text);
+    }
+
+    tagInput.addEventListener('focus', updateSuggestions);
+    tagInput.addEventListener('input', updateSuggestions);
+    tagInput.addEventListener('click', updateSuggestions);
+    tagInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') hideSuggestions();
+    });
+    tagInput.addEventListener('blur', function () {
+      // piccolo delay per consentire il click sui suggerimenti
+      window.setTimeout(hideSuggestions, 150);
+    });
+  });
+</script>
 {% endblock %}

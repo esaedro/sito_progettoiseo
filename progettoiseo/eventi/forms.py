@@ -3,6 +3,9 @@ from django.db.models import Q
 from .models import Evento
 from accounts.models import ProfiloUtente
 from django.contrib.auth.models import Group
+from django.utils import timezone
+from datetime import timedelta
+from progettoiseo.rich_text import sanitize_rich_text
 
 class EventoForm(forms.ModelForm):
     class Meta:
@@ -32,6 +35,10 @@ class EventoForm(forms.ModelForm):
         cleaned_data = super().clean()
         errors = {}
 
+        # Sanitizza la descrizione (HTML da editor WYSIWYG)
+        if 'descrizione' in cleaned_data:
+            cleaned_data['descrizione'] = sanitize_rich_text(cleaned_data.get('descrizione', ''))
+
         # Durante la creazione, assicura che lo stato sia impostato a IN_ATTESA
         if not self.instance.pk:
             cleaned_data['stato'] = 'IN_ATTESA'
@@ -57,6 +64,17 @@ class EventoForm(forms.ModelForm):
             # Durante la creazione, nasconde il campo stato
             self.fields['stato'].widget = forms.HiddenInput()
             self.fields['stato'].initial = 'IN_ATTESA'
+            # Default visualizzato nel form (creazione)
+            self.fields['posti_massimi'].initial = 10
+
+            # Default date/ora in creazione (solo se il form non è bound)
+            # Scelta: domani 18:00 -> 20:00 per evitare 00:00 e date passate.
+            if not self.is_bound:
+                now_local = timezone.localtime(timezone.now())
+                start_dt = (now_local + timedelta(days=1)).replace(hour=18, minute=0, second=0, microsecond=0)
+                end_dt = start_dt.replace(hour=20, minute=0)
+                self.fields['inizio_evento'].initial = start_dt.strftime('%Y-%m-%dT%H:%M')
+                self.fields['fine_evento'].initial = end_dt.strftime('%Y-%m-%dT%H:%M')
         else:
             # Durante la modifica, gestisce le scelte in base allo stato attuale
             if self.instance.stato == 'IN_ATTESA':

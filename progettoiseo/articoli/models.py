@@ -27,10 +27,20 @@ class Articolo(models.Model):
         return autori_attivi + autori_eliminati
 
     def get_tags_list(self):
-        if self.tag:
-            # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni, senza aggiungere #
-            return [t.strip() for t in self.tag.split('#') if t.strip()]
-        return []
+        if not self.tag:
+            return []
+
+        # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni, senza aggiungere #.
+        # Rimuove duplicati in modo case-insensitive, preservando il primo casing.
+        unique_by_lower = {}
+        for raw in self.tag.split('#'):
+            tag = raw.strip()
+            if not tag:
+                continue
+            key = tag.lower()
+            if key not in unique_by_lower:
+                unique_by_lower[key] = tag
+        return list(unique_by_lower.values())
 
     class Meta:
         db_table = 'articoli'

@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load rich_text %}
 {% block content %}
 <div class="container mt-4">
     <!-- Breadcrumb per navigazione -->
@@ -9,7 +10,7 @@
                     <i class="fas fa-arrow-left me-1"></i>Torna alla lista
                 </a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">{{ event.titolo|truncatechars:50 }}</li>
+            <!-- <li class="breadcrumb-item active" aria-current="page">{{ event.titolo|truncatechars:50 }}</li> -->
         </ol>
     </nav>
 
@@ -68,9 +69,14 @@
         <div class="col-lg-4 mb-4">
             <div class="event-image-container">
                 {% if event.immagine %}
-                    <img src="{{ event.immagine.url }}"
-                         alt="{{ event.titolo }}"
-                         class="img-fluid rounded shadow event-detail-image">
+                    <div class="event-image-zoom" role="button" tabindex="0" aria-label="Ingrandisci immagine evento" data-image-url="{{ event.immagine.url }}" data-image-title="{{ event.titolo|escape }}">
+                        <img src="{{ event.immagine.url }}"
+                             alt="{{ event.titolo }}"
+                             class="img-fluid rounded shadow event-detail-image">
+                        <div class="event-image-overlay" aria-hidden="true">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -81,7 +87,7 @@
         <div class="col-12">
             <div class="event-content bg-white p-4 rounded shadow-sm">
                 <div class="event-text">
-                    {{ event.descrizione|linebreaks }}
+                    {{ event.descrizione|rich_text }}
                 </div>
             </div>
         </div>
@@ -93,7 +99,7 @@
             <div class="d-flex justify-content-end align-items-center gap-2">
                 {% if is_direttivo %}
                     {% if event.stato != 'CONCLUSO' %}
-                        <a href="{% url 'evento-edit' event.pk %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'evento-edit' event.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary">
                             <i class="fas fa-edit me-1"></i>Modifica
                         </a>
                     {% else %}
@@ -144,7 +150,22 @@
         {% endif %}
     {% endif %}
 
-    <!-- Modal Eliminazione Evento -->
+    <!-- Modale Bootstrap per zoom immagine evento -->
+    <div class="modal fade" id="eventImageModal" tabindex="-1" aria-labelledby="eventImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventImageModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body d-flex justify-content-center align-items-center" style="min-height:300px;">
+                    <img id="eventImageModalImg" src="" alt="" style="max-width:100%; max-height:85vh; object-fit:contain; border-radius:8px; background:#fff;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Bootstrap per conferma eliminazione evento -->
     <div class="modal fade" id="deleteEventModal" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -192,7 +213,40 @@
     width: 100%;
     height: auto;
     max-height: 400px;
-    object-fit: cover;
+    object-fit: contain;
+}
+
+.event-image-zoom {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    cursor: zoom-in;
+}
+
+.event-image-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: 2rem;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 0.375rem;
+    pointer-events: none;
+}
+
+.event-image-zoom:hover .event-image-overlay,
+.event-image-zoom:focus-visible .event-image-overlay {
+    opacity: 1;
+}
+
+.event-image-zoom:focus-visible {
+    outline: 3px solid rgba(13, 110, 253, 0.35);
+    outline-offset: 4px;
+    border-radius: 0.5rem;
 }
 
 .event-image-placeholder {
@@ -233,6 +287,7 @@
 
 .breadcrumb {
     background-color: transparent;
+    font-size: 1.2em; /* Font size torna alla lista */;
     padding: 0;
 }
 
@@ -333,6 +388,37 @@ function showFeedback(message, type) {
     setTimeout(function() { msgDiv.style.display = 'none'; }, 3500);
 }
 document.addEventListener('DOMContentLoaded', function() {
+    // Zoom immagine evento
+    const zoomContainer = document.querySelector('.event-image-zoom');
+    if (zoomContainer) {
+        const imgUrl = zoomContainer.getAttribute('data-image-url');
+        const imgTitle = zoomContainer.getAttribute('data-image-title') || '';
+        const openModal = function() {
+            const modalEl = document.getElementById('eventImageModal');
+            const modalTitle = document.getElementById('eventImageModalLabel');
+            const modalImg = document.getElementById('eventImageModalImg');
+            if (!modalEl || !modalImg) return;
+
+            modalTitle.textContent = imgTitle;
+            modalImg.src = imgUrl;
+            modalImg.alt = imgTitle;
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        };
+
+        zoomContainer.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
+        });
+
+        zoomContainer.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openModal();
+            }
+        });
+    }
+
     var btn = document.getElementById('iscrizione-btn');
     if (btn) {
         btn.addEventListener('click', function(e) {

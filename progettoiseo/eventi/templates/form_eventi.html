@@ -4,7 +4,8 @@
 <div class="container mt-4">
   {% if is_direttivo %}
   <h2>{% if form.instance.pk %}Modifica evento{% else %}Crea un nuovo evento{% endif %}</h2>
-  <form method="post" enctype="multipart/form-data">
+  <p class="text-muted mb-3"><small><span class="required-asterisk" aria-hidden="true">*</span> I campi contrassegnati con l'asterisco sono obbligatori.</small></p>
+  <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% if form.errors %}
       <div class="alert alert-danger">
@@ -16,61 +17,68 @@
         <!-- Titolo -->
         <div class="mb-3">
           <label for="{{ form.titolo.id_for_label }}" class="form-label">
-            <strong>Titolo:</strong>
+            <strong>Titolo <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.titolo }}
           {% if form.titolo.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.titolo.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.titolo }}
         </div>
 
         <!-- Descrizione -->
         <div class="mb-3">
           <label for="{{ form.descrizione.id_for_label }}" class="form-label">
-            <strong>Descrizione:</strong>
+            <strong>Descrizione <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.descrizione }}
           {% if form.descrizione.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.descrizione.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {# Campo reale (salvato a DB). Lo teniamo nascosto e lo sincronizziamo con l'editor WYSIWYG. #}
+          <div class="d-none">
+            {{ form.descrizione }}
+          </div>
+
+          {# Editor WYSIWYG #}
+          <div id="descrizione-editor" class="bg-white"></div>
+          <div class="form-text">Usa la toolbar per grassetto e sottolineato.</div>
         </div>
 
         <!-- Inizio evento -->
         <div class="mb-3">
           <label for="{{ form.inizio_evento.id_for_label }}" class="form-label">
-            <strong>Inizio evento:</strong>
+            <strong>Inizio evento - Data e ora <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.inizio_evento }}
           {% if form.inizio_evento.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.inizio_evento.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.inizio_evento }}
         </div>
 
         <!-- Fine evento -->
         <div class="mb-3">
           <label for="{{ form.fine_evento.id_for_label }}" class="form-label">
-            <strong>Fine evento:</strong>
+            <strong>Fine evento - Data e ora <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.fine_evento }}
           {% if form.fine_evento.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.fine_evento.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.fine_evento }}
         </div>
         <script>
         // Imposta il min della fine evento uguale all'inizio evento
@@ -94,61 +102,62 @@
         <!-- Luogo -->
         <div class="mb-3">
           <label for="{{ form.luogo.id_for_label }}" class="form-label">
-            <strong>Luogo:</strong>
+            <strong>Luogo <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.luogo }}
           {% if form.luogo.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.luogo.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.luogo }}
         </div>
 
         <!-- Immagine -->
         <div class="mb-3">
-          <label for="{{ form.immagine.id_for_label }}" class="form-label">
-            <strong>Immagine:</strong>
+          <label class="form-label">
+            <strong>Immagine</strong>
           </label>
-          {{ form.immagine }}
           {% if form.immagine.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.immagine.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.immagine }}
         </div>
 
         <!-- Organizzatore -->
         <div class="mb-3">
           <label for="{{ form.organizzatore.id_for_label }}" class="form-label">
-            <strong>Organizzatore:</strong>
+            <strong>Organizzatore <span class="required-asterisk" aria-hidden="true">*</span></strong>
           </label>
-          {{ form.organizzatore }}
           {% if form.organizzatore.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.organizzatore.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.organizzatore }}
         </div>
 
         <!-- Posti massimi -->
         <div class="mb-3">
-          <label for="{{ form.posti_massimi.id_for_label }}" class="form-label">
-            <strong>Numero massimo di posti:</strong>
+          <label for="{{ form.posti_massimi.id_for_label }}" class="form-label d-flex justify-content-between align-items-end w-100">
+            <strong>Numero massimo di posti</strong>
+            <small class="text-muted">(Inserire 0 per indicare posti illimitati)</small>
           </label>
-          {{ form.posti_massimi }}
           {% if form.posti_massimi.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.posti_massimi.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.posti_massimi }}
         </div>
 
         <!-- Stato -->
@@ -157,17 +166,17 @@
           <label for="{{ form.stato.id_for_label }}" class="form-label">
             <strong>Stato:</strong>
           </label>
-          {{ form.stato }}
           {% if form.stato.help_text %}
             <div class="form-text">{{ form.stato.help_text }}</div>
           {% endif %}
           {% if form.stato.errors %}
-            <div class="text-danger">
+            <div class="text-danger mb-2">
               {% for error in form.stato.errors %}
                 <small>{{ error }}</small>
               {% endfor %}
             </div>
           {% endif %}
+          {{ form.stato }}
         </div>
         {% else %}
         <!-- Campo nascosto per lo stato durante la creazione -->
@@ -180,7 +189,11 @@
           <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
             Salva
           </button>
-          <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">Annulla</a>
+          {% if request.GET.next and request.GET.next|slice:":1" == "/" %}
+            <a href="{{ request.GET.next }}" class="btn btn-secondary">Annulla</a>
+          {% else %}
+            <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">Annulla</a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -207,6 +220,29 @@ textarea.form-control {
     resize: vertical;
 }
 
+/* Quill */
+#descrizione-editor {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.ql-toolbar.ql-snow {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.ql-container.ql-snow {
+  border: 0;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.ql-editor {
+  min-height: 220px;
+}
+
 .btn-primary {
     background-color: #007bff;
     border-color: #007bff;
@@ -221,5 +257,77 @@ textarea.form-control {
     font-weight: normal;
     margin-bottom: 5px;
 }
+
+.required-asterisk {
+  color: #dc3545;
+  font-weight: 700;
+}
 </style>
+
+{# Quill (CDN) #}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const descrizioneField = document.getElementById('{{ form.descrizione.id_for_label }}');
+    const editorEl = document.getElementById('descrizione-editor');
+    if (!descrizioneField || !editorEl || typeof Quill === 'undefined') return;
+
+    descrizioneField.setAttribute('aria-hidden', 'true');
+
+    const quill = new Quill(editorEl, {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'underline', 'italic'],
+          ['link'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['clean']
+        ]
+      }
+    });
+
+    function syncHiddenField() {
+      const plain = (quill.getText() || '').replace(/\s+/g, ' ').trim();
+      if (!plain) {
+        descrizioneField.value = '';
+      } else {
+        descrizioneField.value = quill.root.innerHTML;
+      }
+    }
+
+    // Carica contenuto esistente (in modifica)
+    function decodeHtmlEntities(str) {
+      if (!str) return '';
+      const ta = document.createElement('textarea');
+      ta.innerHTML = str;
+      return ta.value;
+    }
+
+    let initial = (descrizioneField.value || '').trim();
+    if (initial && initial.indexOf('<') === -1 && initial.indexOf('&lt;') !== -1) {
+      initial = decodeHtmlEntities(initial);
+    }
+
+    if (initial) {
+      if (initial.indexOf('<') === -1) {
+        quill.setText(initial);
+      } else {
+        quill.root.innerHTML = initial;
+      }
+    }
+
+    syncHiddenField();
+    quill.on('text-change', syncHiddenField);
+
+    // Sincronizza verso il campo reale prima del submit
+    const formEl = descrizioneField.closest('form');
+    if (formEl) {
+      formEl.addEventListener('submit', function () {
+        syncHiddenField();
+      });
+    }
+  });
+</script>
 {% endblock %}

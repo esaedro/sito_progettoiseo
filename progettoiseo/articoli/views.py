@@ -25,13 +25,14 @@ class ArticleListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Estrai i tag usando solo # come delimitatore, mantenendo gli spazi interni
-        available_tags = set()
-        for article in Articolo.objects.all():
-            if article.tag:
-                tags = [f'#{t.strip()}' for t in article.tag.split('#') if t.strip()]
-                available_tags.update(tags)
-        context['available_tags'] = sorted(available_tags)
+        # Estrai i tag rimuovendo duplicati in modo case-insensitive, preservando il primo casing
+        unique_by_lower = {}
+        for article in Articolo.objects.all().only('tag'):
+            for t in article.get_tags_list():
+                key = t.lower()
+                if key not in unique_by_lower:
+                    unique_by_lower[key] = f'#{t}'
+        context['available_tags'] = sorted(unique_by_lower.values(), key=lambda s: s.lower())
         return context
 
 # CORREZIONE: Cambiato da ListView a DetailView
@@ -42,7 +43,6 @@ class ArticleDetailView(DetailView):
 
 @permission_required('articoli.add_articolo')
 def create_articolo(request):
-    profilo_utente, created = ProfiloUtente.objects.get_or_create(user=request.user)
     if request.method == 'POST':
         form = InserimentoArticoloForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
@@ -51,22 +51,37 @@ def create_articolo(request):
     else:
         form = InserimentoArticoloForm(user=request.user)
 
-    return render(request, 'article_form.html', {'form': form})
+    unique_by_lower = {}
+    for article in Articolo.objects.all().only('tag'):
+        for t in article.get_tags_list():
+            key = t.lower()
+            if key not in unique_by_lower:
+                unique_by_lower[key] = f'#{t}'
+    existing_tags = sorted(unique_by_lower.values(), key=lambda s: s.lower())
+
+    return render(request, 'article_form.html', {'form': form, 'existing_tags': existing_tags})
 
 @permission_required('articoli.change_articolo')
 def edit_articolo(request, pk):
-    profilo_utente, created = ProfiloUtente.objects.get_or_create(user=request.user)
     articolo = get_object_or_404(Articolo, pk=pk)
 
     if request.method == 'POST':
-        form = InserimentoArticoloForm(request.POST, request.FILES, instance=articolo)
+        form = InserimentoArticoloForm(request.POST, request.FILES, instance=articolo, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('article-detail', pk=articolo.pk)
     else:
-        form = InserimentoArticoloForm(instance=articolo)
+        form = InserimentoArticoloForm(instance=articolo, user=request.user)
 
-    return render(request, 'article_form.html', {'form': form})
+    unique_by_lower = {}
+    for article in Articolo.objects.all().only('tag'):
+        for t in article.get_tags_list():
+            key = t.lower()
+            if key not in unique_by_lower:
+                unique_by_lower[key] = f'#{t}'
+    existing_tags = sorted(unique_by_lower.values(), key=lambda s: s.lower())
+
+    return render(request, 'article_form.html', {'form': form, 'existing_tags': existing_tags})
 
 """ @method_decorator(permission_required('articoli.add_articolo'), name='dispatch')
 class ArticleFormView(CreateView):
