@@ -5,56 +5,25 @@
 
 {% block content %}
 <style>
-    .border-info {
-        border-color: #0dcaf0 !important;
-        box-shadow: 0 0 0 0.1rem rgba(13, 202, 240, 0.25);
-    }
-
-    .field-modified-indicator {
-        font-size: 0.85rem;
-        font-weight: 500;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
-    }
-
-    .reset-field-btn {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-
-    .input-group .form-control {
-        border-top-right-radius: 0.375rem !important;
-        border-bottom-right-radius: 0.375rem !important;
-    }
-
-    .input-group .form-control:not(:last-child) {
-        border-top-right-radius: 0 !important;
-        border-bottom-right-radius: 0 !important;
-    }
-
-    #saveBtn:disabled {
-        cursor: not-allowed;
-    }
-
+    /* Campi readonly - bordo grigio chiaro */
     input[readonly],
     input[disabled] {
         background-color: #e9ecef;
+        border-color: #dee2e6;
         cursor: not-allowed;
         pointer-events: none;
         user-select: none;
     }
 
+    /* Campi editabili */
     input:not([readonly]):not([disabled]) {
         background-color: #fff;
+        border-width: 2px;
         pointer-events: auto;
         user-select: auto;
     }
 
-    /* Stile per il campo immagine quando disabilitato */
+    /* Campo immagine disabilitato */
     input[type="file"]:disabled {
         opacity: 0.6;
         pointer-events: none;
@@ -114,7 +83,7 @@
                             <div class="text-danger">{{ form.immagine_profilo.errors }}</div>
                         {% endif %}
                     </div>
-
+                    <br>
                     <div class="mb-3">
                         <label for="{{ form.username.id_for_label }}" class="form-label">
                             Nome utente
@@ -327,13 +296,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (enable) {
                     field.removeAttribute('readonly');
                     field.removeAttribute('tabindex');
-                    field.classList.add('border-info');
+                    // field.classList.add('border-info');
                     field.style.pointerEvents = 'auto';
                     field.style.userSelect = 'auto';
                 } else {
                     field.setAttribute('readonly', 'readonly');
                     field.setAttribute('tabindex', '-1');
-                    field.classList.remove('border-info');
+                    // field.classList.remove('border-info');
                     field.style.pointerEvents = 'none';
                     field.style.userSelect = 'none';
                 }
@@ -389,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         editableFields.forEach(fieldName => {
             const isChanged = checkFieldChanged(fieldName);
+            const field = document.getElementById('id_' + fieldName);
             const indicator = document.querySelector(`.field-modified-indicator[data-field="${fieldName}"]`);
             const resetBtn = document.querySelector(`.reset-field-btn[data-field="${fieldName}"]`);
 
@@ -397,6 +367,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (resetBtn) {
                 resetBtn.style.display = isChanged ? 'inline-block' : 'none';
+            }
+
+            // Aggiungi/rimuovi classe border-warning (giallo) quando modificato
+            if (field) {
+                if (isChanged) {
+                    field.classList.add('border-warning');
+                } else {
+                    field.classList.remove('border-warning');
+                }
             }
 
             if (isChanged) {
@@ -415,12 +394,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const resetBtn = imageField.closest('.mb-3').querySelector('.reset-field-btn');
             if (indicator) indicator.style.display = 'inline';
             if (resetBtn) resetBtn.style.display = 'inline-block';
+            imageField.classList.add('border-warning');
         } else {
             delete fieldChanges['immagine_profilo'];
             const indicator = imageField ? imageField.closest('.mb-3').querySelector('.field-modified-indicator') : null;
             const resetBtn = imageField ? imageField.closest('.mb-3').querySelector('.reset-field-btn') : null;
             if (indicator) indicator.style.display = 'none';
             if (resetBtn) resetBtn.style.display = 'none';
+            if (imageField) imageField.classList.remove('border-warning');
         }
 
         hasChanges = anyChanges;
@@ -432,12 +413,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (fieldName === 'immagine_profilo') {
             if (imageField) {
                 imageField.value = '';
+                imageField.classList.remove('border-warning');
             }
         } else {
             const field = document.getElementById('id_' + fieldName);
             if (field) {
                 const originalValue = field.getAttribute('data-original-value') || '';
                 field.value = originalValue;
+                field.classList.remove('border-warning');
             }
         }
         updateFieldIndicators();
@@ -450,11 +433,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (field) {
                 const originalValue = field.getAttribute('data-original-value') || '';
                 field.value = originalValue;
+                field.classList.remove('border-warning');
             }
         });
 
         if (imageField) {
             imageField.value = '';
+            imageField.classList.remove('border-warning');
         }
 
         toggleEditMode(false);
