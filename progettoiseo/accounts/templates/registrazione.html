@@ -10,13 +10,13 @@
                 <div class="card-header bg-primary text-white text-center">
                     <h4 class="mb-0">
                         <i class="fas fa-user-plus me-2"></i>
-                        Registrazione Nuovo Utente
+                        Registrazione Nuovo Membro Tesserato
                     </h4>
                 </div>
                 <div class="card-body">
                     <!-- Messaggio di benvenuto -->
                     <div class="text-center mb-4">
-                        <p class="text-muted">Compila i campi sottostanti per creare il tuo account su Progettoiseo</p>
+                        <p class="text-muted">Compila i campi sottostanti per creare il profilo del nuovo membro tesserato</p>
                     </div>
 
                     <!-- Mostra messaggi di sistema (successo, errore, ecc.) -->
@@ -38,16 +38,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <!-- Mostra errori generali del form -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endif %}
+
 
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
@@ -60,6 +51,7 @@
                                 {{ form.username.label }}
                             </label>
                             {{ form.username }}
+                            <div id="username-feedback" class="mt-1 small"></div>
                             {% if form.username.errors %}
                                 <div class="text-danger small mt-1">
                                     {% for error in form.username.errors %}
@@ -103,7 +95,7 @@
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-user-plus me-2"></i>
-                                Registrati
+                                Conferma registrazione
                             </button>
                         </div>
                     </form>
@@ -163,6 +155,58 @@
                     } catch (err) {
                         console.error('Errore nella copia: ', err);
                     }
+                });
+            }
+        });
+
+        // Controllo in tempo reale della disponibilità di username/email
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+            const feedbackDiv = document.getElementById('username-feedback');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            let checkTimeout = null;
+
+            if (usernameField && feedbackDiv) {
+                usernameField.addEventListener('input', function() {
+                    const username = this.value.trim();
+
+                    // Cancella il timeout precedente
+                    clearTimeout(checkTimeout);
+
+                    // Se il campo è vuoto, rimuovi il feedback
+                    if (username === '') {
+                        feedbackDiv.innerHTML = '';
+                        feedbackDiv.className = 'mt-1 small';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Mostra un indicatore di caricamento
+                    feedbackDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Verifica in corso...';
+                    feedbackDiv.className = 'mt-1 small text-muted';
+
+                    // Aspetta 500ms prima di fare la richiesta (debounce)
+                    checkTimeout = setTimeout(function() {
+                        fetch('{% url "check_username_availability" %}?username=' + encodeURIComponent(username))
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.available) {
+                                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i>' + data.message;
+                                    feedbackDiv.className = 'mt-1 small text-success';
+                                    submitBtn.disabled = false;
+                                } else {
+                                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle me-1"></i>' + data.message;
+                                    feedbackDiv.className = 'mt-1 small text-danger';
+                                    submitBtn.disabled = true;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Errore nella verifica:', error);
+                                feedbackDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Errore di verifica';
+                                feedbackDiv.className = 'mt-1 small text-warning';
+                                submitBtn.disabled = false;
+                            });
+                    }, 500);
                 });
             }
         });

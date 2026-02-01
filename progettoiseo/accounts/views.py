@@ -3,12 +3,19 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, ModificaProfiloForm, ModificaPasswordForm, RegistrazioneForm
+from .forms import (
+    LoginForm,
+    ModificaPasswordForm,
+    ModificaProfiloForm,
+    RegistrazioneForm,
+)
 from .models import ProfiloUtente
+
 # Create your views here.
 
 def custom_login(request):
@@ -57,8 +64,6 @@ def registrazione(request):
 
             messages.success(request, f'Registrazione di {user.username} completata con successo!')
             return redirect('registrazione')
-        else:
-            messages.error(request, 'Ci sono errori nel form. Controlla i dati inseriti.')
     else:
         form = RegistrazioneForm()
     return render(request, 'registrazione.html', {'form': form})
@@ -125,3 +130,38 @@ def rimuovi_foto_profilo(request):
             'success': False,
             'message': f'Errore durante la rimozione: {str(e)}'
         })
+
+def check_username_availability(request):
+    """
+    Endpoint API per verificare in tempo reale se un username o email è già utilizzato
+    """
+    username = request.GET.get('username', '').strip()
+
+    if not username:
+        return JsonResponse({
+            'available': True,
+            'message': ''
+        })
+
+    # Controlla se è un'email o un username
+    if '@' in username:
+        # È un'email
+        exists = User.objects.filter(email=username).exists()
+        if exists:
+            return JsonResponse({
+                'available': False,
+                'message': 'Questa email è già registrata.'
+            })
+    else:
+        # È un username
+        exists = User.objects.filter(username=username).exists()
+        if exists:
+            return JsonResponse({
+                'available': False,
+                'message': 'Questo nome utente è già registrato.'
+            })
+
+    return JsonResponse({
+        'available': True,
+        'message': 'Disponibile'
+    })

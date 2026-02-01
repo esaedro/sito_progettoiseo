@@ -1,10 +1,13 @@
 import random
+import string
+from calendar import firstweekday
+
+from django import forms
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
-from django import forms
+
 from .models import ProfiloUtente
-from calendar import firstweekday
-import string
+
 
 class ModificaPasswordForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
@@ -34,12 +37,12 @@ class ModificaProfiloForm(forms.ModelForm):
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
 
-        # Aggiungi classi Bootstrap
-        self.fields['username'].widget.attrs.update({'class': 'form-control'})
-        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['immagine_profilo'].widget.attrs.update({'class': 'form-control'})
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        # Aggiungi classi Bootstrap e readonly di default
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'readonly': 'readonly', 'tabindex': '-1', 'data-original-value': self.instance.user.username if self.instance and self.instance.user else ''})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control', 'readonly': 'readonly', 'tabindex': '-1', 'data-original-value': self.instance.user.first_name if self.instance and self.instance.user else ''})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control', 'readonly': 'readonly', 'tabindex': '-1', 'data-original-value': self.instance.user.last_name if self.instance and self.instance.user else ''})
+        self.fields['immagine_profilo'].widget.attrs.update({'class': 'form-control', 'disabled': 'disabled', 'tabindex': '-1'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control', 'readonly': 'readonly', 'tabindex': '-1', 'data-original-value': self.instance.user.email if self.instance and self.instance.user and self.instance.user.email else ''})
         self.fields['numero_tessera'].widget.attrs.update({'class': 'form-control'})
         self.fields['data_tesseramento'].widget.attrs.update({'class': 'form-control', 'type': 'date'})
 
@@ -67,12 +70,12 @@ class RegistrazioneForm(forms.ModelForm):
     username = forms.CharField(
         max_length=150,
         widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label="Username o Email"
+        label="Nome utente o Email"
     )
     password_generata = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-        label="Password Generata",
-        help_text="Questa è la tua password temporanea. Salvala in un posto sicuro!"
+        label="Password provvisoria",
+        help_text="Questa è la password provvisoria che dovrà essere obbligatoriamente cambiata successivamente al primo accesso del nuovo tesserato."
     )
     password_hidden = forms.CharField(widget=forms.HiddenInput())
 
@@ -87,9 +90,9 @@ class RegistrazioneForm(forms.ModelForm):
         username = self.cleaned_data['username']
         if '@' in username:
             if User.objects.filter(email=username).exists():
-                raise forms.ValidationError("Questa email è già registrata.")
+                raise forms.ValidationError("Questa email è già registrata. Non è possibile utilizzarla per registrare un nuovo utente.")
         elif User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Questo username è già registrato.")
+            raise forms.ValidationError("Questo nome utente è già registrato. Non è possibile utilizzarlo per registrare un nuovo utente.")
         return username
 
     class Meta:
@@ -115,8 +118,8 @@ class RegistrazioneForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField(
         max_length=150,
-        label="Username o Email",
-        help_text="Inserisci il tuo username o indirizzo email",
+        label="Nome utente o Email",
+        # help_text="Inserisci il tuo username o indirizzo email",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     password = forms.CharField(
