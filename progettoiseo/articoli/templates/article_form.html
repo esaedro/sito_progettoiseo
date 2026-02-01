@@ -93,7 +93,27 @@
               {% endfor %}
             </div>
           {% endif %}
-          {{ form.immagine }}
+          <div class="d-flex align-items-start gap-3 flex-wrap">
+            <div class="flex-grow-1" style="min-width: 260px;">
+              {{ form.immagine }}
+            </div>
+            <div class="image-preview-wrap">
+              <div class="image-preview" aria-label="Anteprima immagine">
+                <img
+                  id="immagine-preview"
+                  alt="Anteprima immagine selezionata"
+                  {% if form.instance.pk and form.instance.immagine %}
+                    src="{{ form.instance.immagine.url }}"
+                    data-has-initial="1"
+                  {% else %}
+                    src=""
+                    data-has-initial="0"
+                  {% endif %}
+                />
+              </div>
+              <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
+            </div>
+          </div>
         </div>
 
         <!-- Testo -->
@@ -187,6 +207,30 @@ textarea.form-control {
   font-weight: 700;
 }
 
+/* Anteprima immagine */
+.image-preview-wrap {
+  min-width: 160px;
+}
+
+.image-preview {
+  width: 150px;
+  height: 110px;
+  border: 1px dashed rgba(0, 0, 0, 0.22);
+  border-radius: 10px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#immagine-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
 /* Dropdown suggerimenti tag */
 .tag-suggestions {
   position: absolute;
@@ -222,6 +266,87 @@ textarea.form-control {
 {# Quill (CDN) #}
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
+    const previewImg = document.getElementById('immagine-preview');
+    const previewHint = document.getElementById('immagine-preview-hint');
+
+    if (!fileInput || !previewImg) return;
+
+    const hasInitial = (previewImg.getAttribute('data-has-initial') || '0') === '1';
+    const initialSrc = (previewImg.getAttribute('src') || '').trim();
+
+    function showPreview(src, hintText) {
+      if (!src) {
+        previewImg.style.display = 'none';
+        previewImg.removeAttribute('src');
+        if (previewHint) previewHint.textContent = hintText || 'Nessuna immagine';
+        return;
+      }
+      previewImg.src = src;
+      previewImg.style.display = 'block';
+      if (previewHint) previewHint.textContent = hintText || 'Anteprima';
+    }
+
+    // Inizializza: se l'articolo ha già un'immagine, mostrala.
+    if (hasInitial && initialSrc) {
+      showPreview(initialSrc, 'Immagine attuale');
+    } else {
+      showPreview('', 'Nessuna immagine');
+    }
+
+    // Se l'utente seleziona un nuovo file, mostra l'anteprima live.
+    let objectUrl = null;
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+      // Revoca eventuale preview precedente.
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+
+      if (!file) {
+        // Nessun file selezionato: ripristina l'immagine iniziale (se c'era).
+        if (hasInitial && initialSrc) showPreview(initialSrc, 'Immagine attuale');
+        else showPreview('', 'Nessuna immagine');
+        return;
+      }
+
+      if (file.type && !file.type.startsWith('image/')) {
+        showPreview('', 'File selezionato non è un’immagine');
+        return;
+      }
+
+      objectUrl = URL.createObjectURL(file);
+      showPreview(objectUrl, 'Nuova immagine');
+
+      // Se nel form esiste la checkbox di Django per “clear”, disattivala.
+      const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
+      if (clearCheckbox) clearCheckbox.checked = false;
+    });
+
+    // Gestione checkbox “clear” (se presente quando si modifica un articolo con immagine).
+    const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
+    if (clearCheckbox) {
+      clearCheckbox.addEventListener('change', function () {
+        if (clearCheckbox.checked) {
+          if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+            objectUrl = null;
+          }
+          showPreview('', 'Immagine rimossa');
+        } else {
+          // Se l’utente deseleziona “clear” e non ha scelto un file nuovo, rimostra l’iniziale.
+          const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+          if (!file && hasInitial && initialSrc) showPreview(initialSrc, 'Immagine attuale');
+        }
+      });
+    }
+  });
+</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {

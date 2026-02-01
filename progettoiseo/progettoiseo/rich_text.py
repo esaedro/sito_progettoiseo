@@ -129,22 +129,42 @@ def sanitize_rich_text(value: str) -> str:
 
     value = maybe_unescape_html(value)
 
+    def _linkify_if_available(html: str) -> str:
+        if bleach is None:
+            return html
+        def _allow_only_safe_protocols(attrs: dict[str, str], new: bool = False) -> dict[str, str] | None:
+            href = (attrs.get("href") or "").strip()
+            parsed = urlparse(href)
+            scheme = (parsed.scheme or "").lower()
+            if scheme and scheme not in ALLOWED_PROTOCOLS:
+                return None
+            return attrs
+
+        # Trasforma URL/email in <a> senza toccare link già presenti.
+        return bleach.linkify(
+            html,
+            skip_tags=["a"],
+            parse_email=True,
+            callbacks=[_allow_only_safe_protocols],
+        )
+
     # Plain text -> escape + <br>
     if "<" not in value and ">" not in value:
         escaped = py_html.escape(value)
         escaped = escaped.replace("\r\n", "\n").replace("\r", "\n")
-        return escaped.replace("\n", "<br>")
+        return _linkify_if_available(escaped.replace("\n", "<br>"))
 
     if bleach is not None:
-        return bleach.clean(
+        cleaned = bleach.clean(
             value,
             tags=ALLOWED_TAGS,
             attributes=ALLOWED_ATTRS,
             protocols=list(ALLOWED_PROTOCOLS),
             strip=True,
         )
+        return _linkify_if_available(cleaned)
 
     sanitizer = _SimpleHTMLSanitizer(set(ALLOWED_TAGS))
     sanitizer.feed(value)
     sanitizer.close()
-    return sanitizer.get_html()
+    return _linkify_if_available(sanitizer.get_html())
