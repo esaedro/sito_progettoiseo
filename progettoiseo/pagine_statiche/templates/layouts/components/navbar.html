@@ -1,7 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-primary shadow-sm px-3" style="min-height: 70px;">
     <div class="container-fluid p-0 d-flex align-items-center">
-        <a class="navbar-brand d-flex align-items-center py-2" href="/home">
-            <img src="/media/logo_progettoiseo.png" alt="Logo Progettoiseo" width="48" height="48" class="rounded-circle me-2" style="object-fit: cover;" />
+        <a class="navbar-brand d-flex align-items-center py-2 nav-hover rounded-pill" href="/home">
+            <img src="/media/logo_progettoiseo.png" alt="Logo Progettoiseo" width="60" height="60"
+                 class="rounded-circle me-2 ms-2 bg-image " style="object-fit: cover;"/>
             <!-- <span class="fw-bold fs-5 text-light d-none d-md-inline">Progetto Iseo</span> -->
         </a>
 
@@ -13,7 +14,7 @@
                 </span>
                 <div class="nav-item dropdown">
                     <a
-                        class="nav-link dropdown-toggle p-1"
+                        class="nav-hover nav-link dropdown-toggle p-1 rounded"
                         href="#"
                         id="userDropdown"
                         role="button"
@@ -23,7 +24,7 @@
                         <img
                             src="{% if user.profile.immagine_profilo %}{{ user.profile.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}"
                             alt="Foto profilo"
-                            class="rounded-circle border border-2 border-light profile-img"
+                            class="rounded-circle border border-2 border-light"
                             width="40"
                             height="40"
                             style="object-fit: cover; cursor: pointer; transition: all 0.3s ease;"
@@ -83,18 +84,18 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav navbar-nav-custom">
                 <li class="nav-item mx-2">
-                    <a class="nav-link text-light fw-medium px-3 py-2 rounded-3 nav-hover" href="/articoli">
+                    <a class="nav-link text-light fw-medium px-5 rounded-3 nav-hover" href="/articoli">
                         <i class="fas fa-newspaper me-1"></i>Articoli
                     </a>
                 </li>
                 <li class="nav-item mx-2">
-                    <a class="nav-link text-light fw-medium px-3 py-2 rounded-3 nav-hover" href="/eventi">
+                    <a class="nav-link text-light fw-medium px-5 rounded-3 nav-hover" href="/eventi">
                         <i class="fas fa-calendar-alt me-1"></i>Eventi
                     </a>
                 </li>
                 <li class="nav-item dropdown mx-2">
                     <a
-                        class="nav-link dropdown-toggle text-light fw-medium px-3 py-2 rounded-3 nav-hover"
+                        class="nav-link dropdown-toggle text-light fw-medium px-5 rounded-3 nav-hover"
                         href="#"
                         id="chisiamoDropdown"
                         role="button"
@@ -125,7 +126,7 @@
 
 .profile-img:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 .btn-light:hover {
@@ -141,6 +142,7 @@
 .dropdown-menu > li:first-child {
    margin-top: 0px;
 }
+
 .dropdown-menu > li:last-child {
    margin-bottom: 0px;
 }
@@ -218,4 +220,5 @@
 .navbar-toggler:focus {
     box-shadow: none !important;
 }
+
 </style>
