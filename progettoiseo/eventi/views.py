@@ -37,11 +37,23 @@ def event_list(request):
 
     user = request.user
     is_direttivo = user.is_authenticated and (user.is_superuser or user.groups.filter(name="Direttivo").exists())
+
+    subscribed_event_ids = set()
+    if user.is_authenticated:
+        profilo = getattr(user, 'profile', None)
+        if profilo is not None:
+            page_event_ids = [e.id for e in events.object_list]
+            if page_event_ids:
+                subscribed_event_ids = set(
+                    profilo.eventi_iscritti.filter(id__in=page_event_ids).values_list('id', flat=True)
+                )
+
     return render(request, 'lista_eventi.html', {
         'events': events,
         'is_direttivo': is_direttivo,
         'stato_filtro': stato_filtro,
         'scelte_stato': scelte_stato,
+        'subscribed_event_ids': subscribed_event_ids,
         'page_obj': events,
         'is_paginated': events.has_other_pages(),
     })

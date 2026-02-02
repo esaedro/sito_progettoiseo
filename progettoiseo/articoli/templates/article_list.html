@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load rich_text %}
 {% block content %}
 <div class="container mt-4">
     <!-- Header con titolo e bottone per nuovo articolo -->
@@ -73,7 +74,7 @@
 
                         <!-- Estratto contenuto -->
                         <p class="card-text flex-grow-1 article-excerpt">
-                            {{ article.testo|striptags }}
+                            {{ article.testo|plain_text_preview }}
                         </p>
 
                         <!-- Azioni -->

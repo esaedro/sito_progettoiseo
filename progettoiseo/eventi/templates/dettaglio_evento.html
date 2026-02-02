@@ -63,6 +63,50 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Pulsanti di iscrizione/disiscrizione: visibili se evento IN_ATTESA oppure se l'utente è iscritto (disiscrizione sempre possibile) -->
+            {% if user.is_authenticated %}
+                <div class="row mt-4 mb-3">
+                    <div class="col-12 text-start pt-2">
+                        <!-- Contenitore messaggio feedback -->
+                        <div id="feedback-message" style="display:none;" class="alert" role="alert"></div>
+                        {% if user.profile in event.iscritti.all %}
+                            <div class="text-muted small mb-2">
+                                Clicca qui per cancellare l'iscrizione, potrai reiscriverti finché ci sono posti disponibili.
+                            </div>
+                            <button id="iscrizione-btn" class="btn btn-danger" data-action="disiscrivimi" data-url="{% url 'evento-unregister' event.pk %}">
+                                <i class="fas fa-user-minus me-1"></i>Disiscriviti dall'evento
+                            </button>
+                        {% elif event.stato == 'IN_ATTESA' and event.is_iscrivibile %}
+                            {% if not event.posti_massimi or event.iscritti.count < event.posti_massimi %}
+                                <div class="text-muted small mb-2">
+                                    Clicca qui per lasciare la tua adesione all'evento, potrai annullarla in qualsiasi momento.
+                                </div>
+                                <button id="iscrizione-btn" class="btn btn-success" data-action="iscrivimi" data-url="{% url 'evento-register' event.pk %}">
+                                    <i class="fas fa-user-plus me-1"></i>Iscrivimi all'evento
+                                </button>
+                            {% endif %}
+                        {% elif event.stato == 'AL_COMPLETO' and not event.is_iscrivibile %}
+                            <div class="text-muted small mb-2">
+                                Le iscrizioni sono chiuse perché l'evento è al completo.
+                            </div>
+                            <button class="btn btn-secondary" disabled>
+                                <i class="fas fa-ban me-1"></i>Evento al completo
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                {% if event.stato == 'IN_ATTESA' %}
+                <div class="row mt-3 mb-3">
+                    <div class="col-12 text-start pt-2">
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i>Accedi per iscriverti
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
         </div>
 
         <!-- Colonna laterale con immagine -->
@@ -114,41 +158,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Pulsanti di iscrizione/disiscrizione: visibili se evento IN_ATTESA oppure se l'utente è iscritto (disiscrizione sempre possibile) -->
-    {% if user.is_authenticated %}
-        <div class="row mt-3 mb-3">
-            <div class="col-12 text-center">
-                <!-- Contenitore messaggio feedback -->
-                <div id="feedback-message" style="display:none;" class="alert" role="alert"></div>
-                {% if user.profile in event.iscritti.all %}
-                    <button id="iscrizione-btn" class="btn btn-danger" data-action="disiscrivimi" data-url="{% url 'evento-unregister' event.pk %}">
-                        <i class="fas fa-user-minus me-1"></i>Disiscriviti dall'evento
-                    </button>
-                {% elif event.stato == 'IN_ATTESA' and event.is_iscrivibile %}
-                    {% if not event.posti_massimi or event.iscritti.count < event.posti_massimi %}
-                        <button id="iscrizione-btn" class="btn btn-success" data-action="iscrivimi" data-url="{% url 'evento-register' event.pk %}">
-                            <i class="fas fa-user-plus me-1"></i>Iscrivimi all'evento
-                        </button>
-                    {% endif %}
-                {% elif event.stato == 'IN_ATTESA' and not event.is_iscrivibile %}
-                    <button class="btn btn-secondary" disabled>
-                        <i class="fas fa-ban me-1"></i>Evento al completo
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-    {% else %}
-        {% if event.stato == 'IN_ATTESA' %}
-        <div class="row mt-3 mb-3">
-            <div class="col-12 text-center">
-                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary">
-                    <i class="fas fa-sign-in-alt me-1"></i>Accedi per iscriverti
-                </a>
-            </div>
-        </div>
-        {% endif %}
-    {% endif %}
 
     <!-- Modale Bootstrap per zoom immagine evento -->
     <div class="modal fade" id="eventImageModal" tabindex="-1" aria-labelledby="eventImageModalLabel" aria-hidden="true">
@@ -277,6 +286,18 @@
 
 .event-text p {
     margin-bottom: 1.5rem;
+}
+
+.event-text a {
+    color: #0b3d91;
+    text-decoration: underline;
+    text-decoration-thickness: 1.2px;
+    text-underline-offset: 2px;
+}
+
+.event-text a:hover,
+.event-text a:focus {
+    color: #062a63;
 }
 
 .event-text h1, .event-text h2, .event-text h3 {
