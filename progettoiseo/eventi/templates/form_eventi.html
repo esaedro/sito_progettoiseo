@@ -116,8 +116,9 @@
 
         <!-- Immagine -->
         <div class="mb-3">
-          <label class="form-label">
-            <strong>Immagine</strong>
+          <label class="form-label d-flex justify-content-between align-items-end w-100">
+            <strong>Immagine <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <small class="text-muted">(È possibile caricare una sola immagine per evento, caricandone una nuova la precedente verrà sovrascritta)</small>
           </label>
           {% if form.immagine.errors %}
             <div class="text-danger mb-2">
