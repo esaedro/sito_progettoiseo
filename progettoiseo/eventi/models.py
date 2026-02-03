@@ -15,7 +15,7 @@ class Evento(models.Model):
     luogo = models.CharField(max_length=255, blank=False, null=False)
     immagine = models.ImageField(upload_to='eventi/', blank=True, null=True)
     numero_partecipanti = models.PositiveIntegerField(default=0, blank=True, null=True)
-    posti_massimi = models.PositiveIntegerField(default=0, blank=True, null=True)
+    posti_massimi = models.PositiveIntegerField(default=10, blank=True, null=True)
     stato = models.CharField(max_length=50, choices=[('IN_ATTESA', 'IN_ATTESA'), ('CONCLUSO', 'CONCLUSO'), ('AL_COMPLETO', 'AL_COMPLETO'), ('ANNULLATO', 'ANNULLATO')], default='IN_ATTESA')
     organizzatore = models.ForeignKey(ProfiloUtente, on_delete=models.SET_NULL, related_name='eventi_organizzati', db_column='organizzatore_id', null=True, blank=True)
     iscritti = models.ManyToManyField(ProfiloUtente, related_name='eventi_iscritti', blank=True, db_table='evento_iscritti')

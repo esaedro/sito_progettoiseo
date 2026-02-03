@@ -1,10 +1,13 @@
 {% extends "layouts/base.html" %}
+{% load rich_text %}
 {% block content %}
 <div class="container mt-4">
     <!-- Header con titolo e bottone per nuovo articolo -->
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="mb-0">Lista Articoli</h1>
+            <h1 class="mb-0">
+                Lista Articoli{% if request.GET.tag %} con tag {{ request.GET.tag|escape }}{% endif %}
+            </h1>
         </div>
         <div class="col-md-4 text-end">
             {% if perms.articoli.add_articolo or perms.articoli.change_articolo %}
@@ -23,7 +26,7 @@
                     <select name="tag" id="tag-filter" class="form-select" onchange="this.form.submit()">
                         <option value="">Tutti i tag</option>
                         {% for tag in available_tags %}
-                            <option value="{{ tag }}" {% if request.GET.tag == tag %}selected{% endif %}>{{ tag }}</option>
+                            <option value="{{ tag }}" {% if request.GET.tag|lower == tag|lower %}selected{% endif %}>{{ tag }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -48,7 +51,7 @@
 
                     <div class="card-body d-flex flex-column">
                         <!-- Titolo -->
-                        <h5 class="card-title fw-bold">
+                        <h5 class="card-title fw-bold article-title">
                             {{ article.titolo|truncatechars:60 }}
                         </h5>
 
@@ -58,20 +61,20 @@
                             {{ article.data_pubblicazione|date:"d M Y" }}
                         </p>
 
-                        <!-- Tag -->
-                        {% if article.tag %}
-                            <div class="mb-2">
+                        <!-- Tag (1 riga riservata, anche se vuota) -->
+                        <div class="mb-2 article-tags" aria-label="Tag articolo">
+                            {% if article.tag %}
                                 {% for tag in article.get_tags_list %}
                                     {% if tag %}
                                         <span class="badge bg-secondary me-1">#{{ tag|cut:","}}</span>
                                     {% endif %}
                                 {% endfor %}
-                            </div>
-                        {% endif %}
+                            {% endif %}
+                        </div>
 
                         <!-- Estratto contenuto -->
-                        <p class="card-text flex-grow-1">
-                            {{ article.testo|truncatewords:20|striptags }}
+                        <p class="card-text flex-grow-1 article-excerpt">
+                            {{ article.testo|plain_text_preview }}
                         </p>
 
                         <!-- Azioni -->
@@ -79,7 +82,8 @@
                             <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
                                 {# Pulsante "Leggi" rimosso, la card è già cliccabile #}
                                 {% if perms.articoli.change_articolo %}
-                                <a href="{% url 'article-edit' article.pk %}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+
+                                <a href="{% url 'article-edit' article.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
                                     <i class="fas fa-edit me-1"></i>Modifica
                                 </a>
                                 {% endif %}
@@ -279,6 +283,40 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #333;
     font-weight: 600;
     transition: color 0.2s;
+}
+
+/* Allineamento: titolo 2 righe, tag 1 riga, testo 3 righe */
+.article-title {
+    line-height: 1.25;
+    min-height: calc(1.25em * 2);
+    max-height: calc(1.25em * 2);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.article-tags {
+    line-height: 1.2;
+    min-height: 1.2em;
+    max-height: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.article-tags .badge {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.article-excerpt {
+    line-height: 1.35;
+    min-height: calc(1.35em * 3);
+    max-height: calc(1.35em * 3);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
 }
 
 .article-card:hover .card-title {
