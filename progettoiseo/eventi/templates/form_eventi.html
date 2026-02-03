@@ -31,8 +31,9 @@
 
         <!-- Descrizione -->
         <div class="mb-3">
-          <label for="{{ form.descrizione.id_for_label }}" class="form-label">
+          <label class="form-label d-flex justify-content-between align-items-end w-100">
             <strong>Descrizione <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <small class="text-muted">(È possibile formattare il testo e creare elenchi puntati. I link vengono resi cliccabili, colorati e sottolineati in automatico)</small>
           </label>
           {% if form.descrizione.errors %}
             <div class="text-danger mb-2">
@@ -48,7 +49,6 @@
 
           {# Editor WYSIWYG #}
           <div id="descrizione-editor" class="bg-white"></div>
-          <div class="form-text">Usa la toolbar per grassetto e sottolineato.</div>
         </div>
 
         <!-- Inizio evento -->

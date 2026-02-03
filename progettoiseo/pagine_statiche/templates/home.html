@@ -1,6 +1,7 @@
 {% extends "layouts/base.html" %}
 {% load static %}
 {% load home_filters %}
+
 {% block title %} Home {% endblock %}
 {% block content %}
 
@@ -102,7 +103,7 @@
                                     {% endif %}
                                 </div>
                                 <p class="card-text text-muted">
-                                    {{ articolo.testo|truncate_smart:30 }}
+                                    {{ articolo.testo|rich_preview|truncate_smart:30 }}
                                 </p>
                                 <!-- {% if articolo.get_tutti_autori %}
                                 <small class="text-muted">
@@ -162,7 +163,7 @@
                                 </div>
                                 {% endif %}
                                 <p class="card-text text-muted">
-                                    {{ evento.descrizione|truncate_smart:30 }}
+                                    {{ evento.descrizione|rich_preview|truncate_smart:30 }}
                                 </p>
                                 <!-- {% if evento.numero_partecipanti %}
                                 <small class="text-muted">

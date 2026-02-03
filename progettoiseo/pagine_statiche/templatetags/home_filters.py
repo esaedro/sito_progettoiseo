@@ -1,6 +1,62 @@
+from __future__ import annotations
+
+from html.parser import HTMLParser
+
 from django import template
 
+from progettoiseo.rich_text import maybe_unescape_html
+
 register = template.Library()
+
+
+class _HtmlToPreviewText(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs):
+        tag = (tag or "").lower()
+        if tag in {"p", "div"}:
+            self._parts.append("\n")
+        elif tag == "br":
+            self._parts.append("\n")
+        elif tag in {"ul", "ol"}:
+            self._parts.append("\n")
+        elif tag == "li":
+            self._parts.append("\n• ")
+
+    def handle_endtag(self, tag: str):
+        tag = (tag or "").lower()
+        if tag in {"p", "div", "li"}:
+            self._parts.append("\n")
+
+    def handle_data(self, data: str):
+        if data:
+            self._parts.append(data)
+
+    def get_text(self) -> str:
+        return "".join(self._parts)
+
+
+@register.filter
+def rich_preview(value: str) -> str:
+    """Converte HTML rich text in testo semplice per anteprime.
+
+    - Rimuove i tag
+    - Inserisce separatori per paragrafi/a-capo
+    - Rende gli <li> come punti elenco (•)
+    """
+    if not value:
+        return ""
+
+    raw = maybe_unescape_html(str(value))
+    parser = _HtmlToPreviewText()
+    parser.feed(raw)
+    parser.close()
+
+    text = parser.get_text().replace("\r\n", "\n").replace("\r", "\n")
+    # In home vogliamo un'anteprima su una riga: usa spazi come separatori.
+    return " ".join(text.split())
 
 @register.filter
 def split(value, delimiter=','):
