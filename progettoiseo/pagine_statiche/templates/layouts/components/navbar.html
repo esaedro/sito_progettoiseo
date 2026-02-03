@@ -81,21 +81,26 @@
                 <span></span>
             </div>
         </button>
+        {% if user.is_authenticated %}
+          <div style="width: 8em;"> </div>
+        {% else %}
+           <div style="width: 4em;"> </div>
+        {% endif %}
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav navbar-nav-custom">
-                <li class="nav-item mx-2">
-                    <a class="nav-link text-light fw-medium px-5 rounded-3 nav-hover" href="/articoli">
+                <li class="nav-item ">
+                    <a class="nav-link text-light fw-medium px-5 py-3 rounded-3 nav-hover" href="/articoli">
                         <i class="fas fa-newspaper me-1"></i>Articoli
                     </a>
                 </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link text-light fw-medium px-5 rounded-3 nav-hover" href="/eventi">
+                <li class="nav-item ">
+                    <a class="nav-link text-light fw-medium px-5 py-3 rounded-3 nav-hover" href="/eventi">
                         <i class="fas fa-calendar-alt me-1"></i>Eventi
                     </a>
                 </li>
-                <li class="nav-item dropdown mx-2">
+                <li class="nav-item dropdown ">
                     <a
-                        class="nav-link dropdown-toggle text-light fw-medium px-5 rounded-3 nav-hover"
+                        class="nav-link dropdown-toggle text-light px-5 py-3 fw-medium rounded-3 nav-hover"
                         href="#"
                         id="chisiamoDropdown"
                         role="button"
