@@ -53,8 +53,12 @@
 
         <!-- Inizio evento -->
         <div class="mb-3">
-          <label for="{{ form.inizio_evento.id_for_label }}" class="form-label">
+          <label for="{{ form.inizio_evento.id_for_label }}" class="form-label d-flex justify-content-between align-items-end w-100">
             <strong>Inizio evento - Data e ora <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <span class="form-check form-switch m-0">
+              {{ form.solo_data }}
+              <label class="form-check-label text-muted" for="solo-data">Solo data</label>
+            </span>
           </label>
           {% if form.inizio_evento.errors %}
             <div class="text-danger mb-2">
@@ -63,7 +67,9 @@
               {% endfor %}
             </div>
           {% endif %}
-          {{ form.inizio_evento }}
+          <div id="inizio-evento-wrap">
+            {{ form.inizio_evento }}
+          </div>
         </div>
 
         <!-- Fine evento -->
@@ -78,26 +84,11 @@
               {% endfor %}
             </div>
           {% endif %}
-          {{ form.fine_evento }}
+          <div id="fine-evento-wrap">
+            {{ form.fine_evento }}
+          </div>
         </div>
-        <script>
-        // Imposta il min della fine evento uguale all'inizio evento
-        document.addEventListener('DOMContentLoaded', function() {
-          var inizio = document.getElementById('{{ form.inizio_evento.id_for_label }}');
-          var fine = document.getElementById('{{ form.fine_evento.id_for_label }}');
-          if (inizio && fine) {
-            function aggiornaMinFine() {
-              if (inizio.value) {
-                fine.min = inizio.value;
-              } else {
-                fine.removeAttribute('min');
-              }
-            }
-            inizio.addEventListener('change', aggiornaMinFine);
-            aggiornaMinFine();
-          }
-        });
-        </script>
+        {# min fine evento gestito dallo script in fondo pagina #}
 
         <!-- Luogo -->
         <div class="mb-3">
@@ -320,6 +311,74 @@ textarea.form-control {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const dateOnlyToggle = document.getElementById('solo-data');
+    const startInput = document.getElementById('{{ form.inizio_evento.id_for_label }}');
+    const endInput = document.getElementById('{{ form.fine_evento.id_for_label }}');
+
+    function getDatePart(v) {
+      const s = (v || '').trim();
+      if (!s) return '';
+      return s.includes('T') ? s.split('T')[0] : s;
+    }
+
+    function updateEndMin() {
+      if (!startInput || !endInput) return;
+      const startVal = (startInput.value || '').trim();
+      if (!startVal) {
+        endInput.removeAttribute('min');
+        return;
+      }
+
+      // min deve essere coerente con il tipo corrente (date vs datetime-local)
+      const minVal = (endInput.type === 'date') ? getDatePart(startVal) : startVal;
+      endInput.min = minVal;
+    }
+
+    function applyDateOnlyState(isDateOnly) {
+      if (!dateOnlyToggle || !startInput || !endInput) return;
+
+      if (isDateOnly) {
+        // Salva i valori datetime completi per eventuale ripristino
+        if (!startInput.dataset.prevDatetime) startInput.dataset.prevDatetime = (startInput.value || '').trim();
+        if (!endInput.dataset.prevDatetime) endInput.dataset.prevDatetime = (endInput.value || '').trim();
+
+        // Passa a solo data mantenendo la parte YYYY-MM-DD
+        startInput.type = 'date';
+        endInput.type = 'date';
+        startInput.value = getDatePart(startInput.dataset.prevDatetime);
+        endInput.value = getDatePart(endInput.dataset.prevDatetime);
+      } else {
+        // Torna a data+ora
+        const prevStart = (startInput.dataset.prevDatetime || '').trim();
+        const prevEnd = (endInput.dataset.prevDatetime || '').trim();
+
+        startInput.type = 'datetime-local';
+        endInput.type = 'datetime-local';
+
+        // Se non c'è un valore precedente valido, usa orari di default sensati
+        const startDate = getDatePart(startInput.value);
+        const endDate = getDatePart(endInput.value);
+        startInput.value = prevStart || (startDate ? `${startDate}T18:00` : '');
+        endInput.value = prevEnd || (endDate ? `${endDate}T20:00` : '');
+      }
+
+      updateEndMin();
+    }
+
+    if (dateOnlyToggle && startInput && endInput) {
+      applyDateOnlyState(dateOnlyToggle.checked);
+      dateOnlyToggle.addEventListener('change', function () {
+        // prima di passare a date-only, salva i valori attuali
+        startInput.dataset.prevDatetime = (startInput.value || '').trim();
+        endInput.dataset.prevDatetime = (endInput.value || '').trim();
+        applyDateOnlyState(dateOnlyToggle.checked);
+      });
+
+      startInput.addEventListener('change', updateEndMin);
+      startInput.addEventListener('input', updateEndMin);
+      updateEndMin();
+    }
+
     const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
     const previewImg = document.getElementById('immagine-preview');
     const previewHint = document.getElementById('immagine-preview-hint');

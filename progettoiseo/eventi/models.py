@@ -12,6 +12,7 @@ class Evento(models.Model):
     descrizione = models.TextField(blank=False, null=False)
     inizio_evento = models.DateTimeField(null=True, blank=True)
     fine_evento = models.DateTimeField(null=True, blank=True)
+    solo_data = models.BooleanField(default=False)
     luogo = models.CharField(max_length=255, blank=False, null=False)
     immagine = models.ImageField(upload_to='eventi/', blank=True, null=True)
     numero_partecipanti = models.PositiveIntegerField(default=0, blank=True, null=True)

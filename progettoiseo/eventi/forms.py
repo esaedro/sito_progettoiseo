@@ -1,14 +1,14 @@
 import os
+from datetime import timedelta
 
 from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.db.models import Case, IntegerField, When
+from django.utils import timezone
 from .models import Evento
 from accounts.models import ProfiloUtente
 from django.contrib.auth.models import Group
-from django.utils import timezone
-from datetime import timedelta
 from progettoiseo.rich_text import sanitize_rich_text
 
 
@@ -34,10 +34,24 @@ class ClearableFileInputFilename(forms.ClearableFileInput):
         return context
 
 class EventoForm(forms.ModelForm):
+    solo_data = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                'class': 'form-check-input',
+                'type': 'checkbox',
+                'role': 'switch',
+                'id': 'solo-data',
+            }
+        ),
+        label='Solo data',
+    )
+
     class Meta:
         model = Evento
         fields = [
             'titolo', 'descrizione', 'inizio_evento', 'fine_evento',
+            'solo_data',
             'luogo', 'immagine', 'posti_massimi', 'stato', 'organizzatore'
         ]
         widgets = {
@@ -75,6 +89,23 @@ class EventoForm(forms.ModelForm):
             errors['fine_evento'] = "Compila questo campo."
         if not cleaned_data.get('organizzatore'):
             errors['organizzatore'] = "Compila questo campo."
+
+        # Supporto "solo data" (persistito su DB):
+        # - se la checkbox è attiva (oppure arrivano YYYY-MM-DD), salva solo_data=True
+        # - normalizza orari: inizio -> 00:00, fine -> 23:59
+        raw_start = (self.data.get('inizio_evento') or '').strip()
+        raw_end = (self.data.get('fine_evento') or '').strip()
+        is_date_only_input = (raw_start and 'T' not in raw_start) or (raw_end and 'T' not in raw_end)
+        solo_data = bool(cleaned_data.get('solo_data')) or is_date_only_input
+        cleaned_data['solo_data'] = solo_data
+
+        if solo_data and cleaned_data.get('inizio_evento') is not None:
+            dt = cleaned_data['inizio_evento']
+            cleaned_data['inizio_evento'] = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        if solo_data and cleaned_data.get('fine_evento') is not None:
+            dt = cleaned_data['fine_evento']
+            cleaned_data['fine_evento'] = dt.replace(hour=23, minute=59, second=0, microsecond=0)
+
         if errors:
             for field, msg in errors.items():
                 self.add_error(field, msg)
@@ -82,6 +113,30 @@ class EventoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Stato iniziale checkbox "Solo data" in modifica.
+        if self.instance and getattr(self.instance, 'pk', None) and not self.is_bound:
+            if getattr(self.instance, 'solo_data', False):
+                self.fields['solo_data'].initial = True
+            else:
+                start = getattr(self.instance, 'inizio_evento', None)
+                end = getattr(self.instance, 'fine_evento', None)
+                inferred = bool(
+                    start and end and start.hour == 0 and start.minute == 0 and end.hour == 23 and end.minute == 59
+                )
+                self.fields['solo_data'].initial = inferred
+
+        # Se il form è bound e l'utente ha selezionato "Solo data", rendi i campi come type=date.
+        # Questo evita che, in caso di errori, il browser svuoti i valori (es. value=YYYY-MM-DD su datetime-local).
+        if self.is_bound:
+            raw_toggle = (self.data.get('solo_data') or '').strip().lower()
+            bound_solo_data = raw_toggle in {'1', 'true', 'on', 'yes'}
+            if bound_solo_data:
+                for field in ['inizio_evento', 'fine_evento']:
+                    self.fields[field].widget = forms.DateInput(
+                        attrs={'type': 'date', 'class': 'form-control', 'required': 'required'},
+                        format='%Y-%m-%d'
+                    )
 
         # L'organizzatore deve essere sempre selezionato: rimuove la scelta vuota "---------".
         self.fields['organizzatore'].required = True
@@ -196,6 +251,17 @@ class EventoForm(forms.ModelForm):
         self.fields['organizzatore'].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username}"
 
         # Fix visualizzazione valori precompilati per i campi datetime-local
+        # + accetta anche formato solo data (YYYY-MM-DD)
+        for field in ['inizio_evento', 'fine_evento']:
+            if hasattr(self.fields.get(field), 'input_formats'):
+                # aggiunge senza perdere i default di Django
+                current = list(self.fields[field].input_formats or [])
+                if '%Y-%m-%dT%H:%M' not in current:
+                    current.insert(0, '%Y-%m-%dT%H:%M')
+                if '%Y-%m-%d' not in current:
+                    current.append('%Y-%m-%d')
+                self.fields[field].input_formats = current
+
         for field in ['inizio_evento', 'fine_evento']:
             if self.instance and getattr(self.instance, field):
                 value = getattr(self.instance, field)
