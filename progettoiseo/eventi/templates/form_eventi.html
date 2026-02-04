@@ -54,7 +54,7 @@
         <!-- Inizio evento -->
         <div class="mb-3">
           <label for="{{ form.inizio_evento.id_for_label }}" class="form-label d-flex justify-content-between align-items-end w-100">
-            <strong>Inizio evento - Data e ora <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <strong><span id="inizio-evento-label-text">Inizio evento - Data e ora</span> <span class="required-asterisk" aria-hidden="true">*</span></strong>
             <span class="form-check form-switch m-0">
               {{ form.solo_data }}
               <label class="form-check-label text-muted" for="solo-data">Solo data</label>
@@ -74,8 +74,9 @@
 
         <!-- Fine evento -->
         <div class="mb-3">
-          <label for="{{ form.fine_evento.id_for_label }}" class="form-label">
-            <strong>Fine evento - Data e ora <span class="required-asterisk" aria-hidden="true">*</span></strong>
+          <label for="{{ form.fine_evento.id_for_label }}" class="form-label d-flex justify-content-between align-items-end w-100">
+            <strong><span id="fine-evento-label-text">Fine evento - Data e ora</span> <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <small id="fine-evento-inline-warning" class="text-danger d-none">La data di fine evento non può precedere la data di inizio evento</small>
           </label>
           {% if form.fine_evento.errors %}
             <div class="text-danger mb-2">
@@ -87,6 +88,7 @@
           <div id="fine-evento-wrap">
             {{ form.fine_evento }}
           </div>
+          <div id="fine-evento-client-error" class="invalid-feedback d-none"></div>
         </div>
         {# min fine evento gestito dallo script in fondo pagina #}
 
@@ -314,6 +316,10 @@ textarea.form-control {
     const dateOnlyToggle = document.getElementById('solo-data');
     const startInput = document.getElementById('{{ form.inizio_evento.id_for_label }}');
     const endInput = document.getElementById('{{ form.fine_evento.id_for_label }}');
+    const endClientError = document.getElementById('fine-evento-client-error');
+    const endInlineWarning = document.getElementById('fine-evento-inline-warning');
+    const startLabelText = document.getElementById('inizio-evento-label-text');
+    const endLabelText = document.getElementById('fine-evento-label-text');
 
     function getDatePart(v) {
       const s = (v || '').trim();
@@ -334,8 +340,62 @@ textarea.form-control {
       endInput.min = minVal;
     }
 
+    function validateEndAfterStart() {
+      if (!startInput || !endInput) return true;
+
+      const startVal = (startInput.value || '').trim();
+      const endVal = (endInput.value || '').trim();
+
+      // Se uno dei due è vuoto, non bloccare qui (ci pensa required).
+      if (!startVal || !endVal) {
+        endInput.setCustomValidity('');
+        endInput.classList.remove('is-invalid');
+        if (endClientError) {
+          endClientError.textContent = '';
+          endClientError.classList.add('d-none');
+        }
+        if (endInlineWarning) endInlineWarning.classList.add('d-none');
+        return true;
+      }
+
+      const isDateOnly = (startInput.type === 'date') || (endInput.type === 'date');
+      const startCmp = isDateOnly ? getDatePart(startVal) : startVal;
+      const endCmp = isDateOnly ? getDatePart(endVal) : endVal;
+
+      // Formati ISO (YYYY-MM-DD / YYYY-MM-DDTHH:MM): confronto lessicografico affidabile.
+      const ok = endCmp >= startCmp;
+
+      if (ok) {
+        endInput.setCustomValidity('');
+        endInput.classList.remove('is-invalid');
+        if (endClientError) {
+          endClientError.textContent = '';
+          endClientError.classList.add('d-none');
+        }
+        if (endInlineWarning) endInlineWarning.classList.add('d-none');
+        return true;
+      }
+
+      const msg = isDateOnly
+        ? 'La data di fine deve essere successiva o uguale alla data di inizio.'
+        : 'La data/ora di fine deve essere successiva o uguale alla data/ora di inizio.';
+
+      endInput.setCustomValidity(msg);
+      endInput.classList.add('is-invalid');
+      if (endClientError) {
+        endClientError.textContent = msg;
+        endClientError.classList.remove('d-none');
+      }
+      if (endInlineWarning) endInlineWarning.classList.remove('d-none');
+      return false;
+    }
+
     function applyDateOnlyState(isDateOnly) {
       if (!dateOnlyToggle || !startInput || !endInput) return;
+
+      // Aggiorna i testi delle label in base allo stato (solo data vs data e ora)
+      if (startLabelText) startLabelText.textContent = isDateOnly ? 'Inizio evento - Data' : 'Inizio evento - Data e ora';
+      if (endLabelText) endLabelText.textContent = isDateOnly ? 'Fine evento - Data' : 'Fine evento - Data e ora';
 
       if (isDateOnly) {
         // Salva i valori datetime completi per eventuale ripristino
@@ -363,6 +423,7 @@ textarea.form-control {
       }
 
       updateEndMin();
+      validateEndAfterStart();
     }
 
     if (dateOnlyToggle && startInput && endInput) {
@@ -376,7 +437,22 @@ textarea.form-control {
 
       startInput.addEventListener('change', updateEndMin);
       startInput.addEventListener('input', updateEndMin);
+      startInput.addEventListener('change', validateEndAfterStart);
+      startInput.addEventListener('input', validateEndAfterStart);
+      endInput.addEventListener('change', validateEndAfterStart);
+      endInput.addEventListener('input', validateEndAfterStart);
       updateEndMin();
+      validateEndAfterStart();
+
+      const formEl = startInput.closest('form');
+      if (formEl) {
+        formEl.addEventListener('submit', function (e) {
+          if (!validateEndAfterStart()) {
+            e.preventDefault();
+            endInput.focus();
+          }
+        });
+      }
     }
 
     const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');

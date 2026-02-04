@@ -1,7 +1,8 @@
 from django.db import models
 from django.db.models import signals as receivers
 from django.dispatch import receiver
-from django.db.models.signals import post_save, m2m_changed, pre_delete, pre_save
+from django.db.models.signals import post_save, m2m_changed, pre_delete
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from accounts.models import ProfiloUtente
 # Create your models here.
@@ -36,7 +37,57 @@ class Evento(models.Model):
         db_table = 'eventi'
         ordering = ['-inizio_evento']
 
+    def clean(self):
+        errors = {}
+
+        if not self.titolo:
+            errors['titolo'] = "Il titolo dell'evento non può essere vuoto."
+        if not self.descrizione:
+            errors['descrizione'] = "La descrizione dell'evento non può essere vuota."
+        if not self.luogo:
+            errors['luogo'] = "Il luogo dell'evento non può essere vuoto."
+        if not self.inizio_evento:
+            errors['inizio_evento'] = "Compila questo campo."
+        if not self.fine_evento:
+            errors['fine_evento'] = "Compila questo campo."
+
+        if self.stato and self.stato not in dict(self._meta.get_field('stato').choices):
+            errors['stato'] = f"Stato dell'evento non valido: {self.stato}"
+
+        if self.immagine and getattr(self.immagine, 'name', '') and not self.immagine.name.lower().endswith(
+            ('.png', '.jpg', '.jpeg')
+        ):
+            errors['immagine'] = "L'immagine dell'evento deve essere in formato PNG, JPG o JPEG."
+
+        if self.organizzatore is None:
+            errors['organizzatore'] = "L'organizzatore dell'evento non può essere vuoto."
+
+        if self.numero_partecipanti is not None and self.numero_partecipanti < 0:
+            errors['numero_partecipanti'] = "Il numero di partecipanti non può essere negativo."
+
+        if self.inizio_evento and self.fine_evento:
+            start = self.inizio_evento
+            end = self.fine_evento
+
+            # Normalizza aware/naive per evitare TypeError in confronto.
+            tz = timezone.get_current_timezone()
+            if timezone.is_aware(start) and timezone.is_naive(end):
+                end = timezone.make_aware(end, tz)
+            elif timezone.is_naive(start) and timezone.is_aware(end):
+                start = timezone.make_aware(start, tz)
+
+            if end < start:
+                errors['fine_evento'] = (
+                    "La data/ora di fine evento deve essere successiva o uguale a quella di inizio evento."
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
+        # Valida sempre il model (anche quando si salva fuori da ModelForm)
+        self.full_clean()
+
         # Aggiorna stato a CONCLUSO se la data di fine è passata
         if self.fine_evento and self.fine_evento < timezone.now():
             self.stato = 'CONCLUSO'
@@ -44,32 +95,6 @@ class Evento(models.Model):
         elif self.posti_massimi and self.posti_disponibili() == 0 and self.stato not in ['CONCLUSO', 'ANNULLATO']:
             self.stato = 'AL_COMPLETO'
         super().save(*args, **kwargs)
-
-@receiver(receivers.pre_save, sender=Evento)
-def validate_evento_fields(sender, instance, **kwargs):
-    """
-    Validazione dei campi dell'evento prima del salvataggio.
-    """
-    if not instance.titolo:
-        raise ValueError("Il titolo dell'evento non può essere vuoto.")
-    if not instance.descrizione:
-        raise ValueError("La descrizione dell'evento non può essere vuota.")
-    if not instance.luogo:
-        raise ValueError("Il luogo dell'evento non può essere vuoto.")
-    if not instance.inizio_evento or not instance.fine_evento:
-        raise ValueError("Le date di inizio e fine dell'evento non possono essere vuote.")
-    if instance.stato not in dict(Evento._meta.get_field('stato').choices):
-        raise ValueError(f"Stato dell'evento non valido: {instance.stato}")
-    if instance.immagine and not instance.immagine.name.endswith(('.png', '.jpg', '.jpeg')):
-        raise ValueError("L'immagine dell'evento deve essere in formato PNG, JPG o JPEG.")
-    if instance.organizzatore is None:
-        raise ValueError("L'organizzatore dell'evento non può essere vuoto.")
-    if instance.numero_partecipanti < 0:
-        raise ValueError("Il numero di partecipanti non può essere negativo.")
-    # Puoi aggiungere ulteriori validazioni qui, ad esempio controllare che la data non sia nel passato
-    if instance.inizio_evento and instance.fine_evento:
-        if instance.fine_evento < instance.inizio_evento:
-            raise ValueError("La data di fine evento non può essere precedente a quella di inizio.")
 
 @receiver(receivers.post_save, sender=Evento)
 def create_evento(sender, instance, created, **kwargs):
@@ -133,14 +158,3 @@ def notify_event_deletion(sender, instance, **kwargs):
         print(f"Evento cancellato: {instance.titolo} da {instance.organizzatore.utente.username}")
     else:
         print(f"Evento cancellato: {instance.titolo}")
-
-@receiver(receivers.pre_save, sender=Evento)
-def validate_event_date(sender, instance, **kwargs):
-    """
-    Validazione della data dell'evento.
-    """
-    if not instance.inizio_evento or not instance.fine_evento:
-        raise ValueError("Le date di inizio e fine dell'evento non possono essere vuote.")
-    # Assicurati che la data di fine sia successiva o uguale a quella di inizio
-    if instance.fine_evento < instance.inizio_evento:
-        raise ValueError("La data/ora di fine evento deve essere successiva o uguale a quella di inizio evento.")

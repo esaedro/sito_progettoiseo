@@ -106,6 +106,14 @@ class EventoForm(forms.ModelForm):
             dt = cleaned_data['fine_evento']
             cleaned_data['fine_evento'] = dt.replace(hour=23, minute=59, second=0, microsecond=0)
 
+        # Validazione: fine >= inizio (dopo normalizzazione solo_data)
+        start_dt = cleaned_data.get('inizio_evento')
+        end_dt = cleaned_data.get('fine_evento')
+        if start_dt is not None and end_dt is not None and end_dt < start_dt:
+            errors['fine_evento'] = (
+                "La data/ora di fine evento deve essere successiva o uguale a quella di inizio evento."
+            )
+
         if errors:
             for field, msg in errors.items():
                 self.add_error(field, msg)
