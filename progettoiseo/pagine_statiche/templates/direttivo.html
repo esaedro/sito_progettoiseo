@@ -6,55 +6,129 @@
         <h1 class="text-center mb-4">Il Direttivo</h1>
     </div>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <p class="text-center mb-5">
-                Il direttivo di Progettoiseo è composto da 12 membri eletti che si occupano della gestione
-                e dell'organizzazione delle attività dell'associazione. Qui di seguito puoi trovare
-                l'elenco dei membri attualmente in carica.
-            </p>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <p class="text-center mb-5 lead">
+                    Il direttivo di Progettoiseo è composto da 12 membri eletti che si occupano della gestione
+                    e dell'organizzazione delle attività dell'associazione. Qui di seguito puoi trovare
+                    l'elenco dei membri attualmente in carica.
+                </p>
+            </div>
         </div>
-    </div>
 
-    {% if membri_direttivo %}
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="list-group">
-                    {% for membro in membri_direttivo %}
-                        <div class="list-group-item d-flex align-items-center">
-                            <div class="me-3">
-                                {% if membro.profile.immagine_profilo %}
-                                    <img src="{{ membro.profile.immagine_profilo.url }}"
-                                         alt="Foto di {{ membro.first_name }} {{ membro.last_name }}"
-                                         class="rounded-circle"
-                                         style="width: 60px; height: 60px; object-fit: cover;"
-                                         onerror="this.src='/media/accounts/foto_profilo_base.png';">
-                                {% else %}
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
-                                         style="width: 60px; height: 60px;">
-                                        <i class="fas fa-user text-white"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1">{{ membro.first_name }} {{ membro.last_name }}</h5>
-                            </div>
+        {% if membri_direttivo %}
+            <div class="row gx-4">
+                {% for membro in membri_direttivo %}
+                <div class="col-md-6 col-lg-6 mb-4">
+                    <div class="member-item">
+                        <div class="member-avatar">
+                            {% if membro.profile.immagine_profilo %}
+                                <img src="{{ membro.profile.immagine_profilo.url }}"
+                                     alt="Foto di {{ membro.first_name }} {{ membro.last_name }}"
+                                     class="rounded-circle"
+                                     onerror="this.src='/media/accounts/foto_profilo_base.png';">
+                            {% else %}
+                                <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center avatar-placeholder">
+                                    <i class="fas fa-user text-white fa-2x"></i>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endfor %}
+                        <div class="member-info">
+                            <h4 class="member-name mb-0">{{ membro.first_name }} {{ membro.last_name }}</h4>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="text-center py-5">
+                        <i class="fas fa-users text-muted fa-5x mb-3"></i>
+                        <h3 class="text-muted">Nessun membro del direttivo trovato</h3>
+                        <p class="text-muted mb-0">Al momento non ci sono membri assegnati al gruppo "Direttivo".</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% else %}
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="alert alert-info text-center">
-                    <h4>Nessun membro del direttivo trovato</h4>
-                    <p class="mb-0">Al momento non ci sono membri assegnati al gruppo "Direttivo".</p>
-                </div>
-            </div>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
+
+<style>
+    .member-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 8rem;
+        margin-bottom: 0;
+        background-color: transparent;
+        height: 100%;
+    }
+
+    .member-avatar {
+        flex-shrink: 0;
+        margin-right: 2.5rem;
+    }
+
+    .member-avatar img,
+    .member-avatar .avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .avatar-placeholder {
+        background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    }
+
+    .member-info {
+        flex-grow: 1;
+    }
+
+    .member-name {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .member-avatar {
+            margin-right: 1.25rem;
+        }
+
+        .member-avatar img,
+        .member-avatar .avatar-placeholder {
+            width: 60px;
+            height: 60px;
+        }
+
+        .member-name {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .member-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .member-avatar {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+
+        .member-avatar img,
+        .member-avatar .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+        }
+
+        .member-name {
+            font-size: 1.35rem;
+        }
+    }
+</style>
 {% endblock %}
-</div>
