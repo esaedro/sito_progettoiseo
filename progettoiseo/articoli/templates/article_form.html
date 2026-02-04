@@ -96,21 +96,24 @@
             <div class="flex-grow-1" style="min-width: 260px;">
               {{ form.immagine }}
             </div>
-            <div class="image-preview-wrap">
-              <div class="image-preview" aria-label="Anteprima immagine">
-                <img
-                  id="immagine-preview"
-                  alt="Anteprima immagine selezionata"
-                  {% if form.instance.pk and form.instance.immagine %}
-                    src="{{ form.instance.immagine.url }}"
-                    data-has-initial="1"
-                  {% else %}
-                    src=""
-                    data-has-initial="0"
-                  {% endif %}
-                />
+            <div class="d-flex align-items-start gap-2">
+              <div id="immagine-clear-row" class="d-flex align-items-start"></div>
+              <div class="image-preview-wrap">
+                <div class="image-preview" aria-label="Anteprima immagine">
+                  <img
+                    id="immagine-preview"
+                    alt="Anteprima immagine selezionata"
+                    {% if form.instance.pk and form.instance.immagine %}
+                      src="{{ form.instance.immagine.url }}"
+                      data-has-initial="1"
+                    {% else %}
+                      src=""
+                      data-has-initial="0"
+                    {% endif %}
+                  />
+                </div>
+                <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
               </div>
-              <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
             </div>
           </div>
         </div>
@@ -210,6 +213,22 @@ textarea.form-control {
 /* Anteprima immagine */
 .image-preview-wrap {
   min-width: 160px;
+}
+
+#immagine-clear-row {
+  white-space: nowrap;
+}
+
+#immagine-clear-row .form-check {
+  margin: 0;
+}
+
+#immagine-clear-row .form-check-input {
+  margin-top: 0;
+}
+
+#immagine-clear-row label {
+  margin: 0;
 }
 
 .image-preview {
@@ -331,6 +350,37 @@ textarea.form-control {
     // Gestione checkbox “clear” (se presente quando si modifica un articolo con immagine).
     const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
     if (clearCheckbox) {
+      // Sposta la checkbox "svuota" vicino all'anteprima (stile switch come nel form eventi)
+      // mantenendo name/id originali (così Django la processa correttamente).
+      const clearRow = document.getElementById('immagine-clear-row');
+      const originalLabel = clearCheckbox.id
+        ? document.querySelector(`label[for="${CSS.escape(clearCheckbox.id)}"]`)
+        : null;
+
+      if (clearRow) {
+        const wrap = document.createElement('div');
+        wrap.className = 'form-check form-switch d-flex align-items-center gap-2';
+
+        clearCheckbox.classList.add('form-check-input');
+        wrap.appendChild(clearCheckbox);
+
+        if (originalLabel) {
+          originalLabel.classList.add('form-check-label', 'text-muted');
+          originalLabel.style.fontSize = '0.9rem';
+          wrap.appendChild(originalLabel);
+        } else {
+          const lbl = document.createElement('label');
+          lbl.className = 'form-check-label text-muted';
+          lbl.style.fontSize = '0.9rem';
+          if (clearCheckbox.id) lbl.setAttribute('for', clearCheckbox.id);
+          lbl.textContent = 'Svuota';
+          wrap.appendChild(lbl);
+        }
+
+        clearRow.innerHTML = '';
+        clearRow.appendChild(wrap);
+      }
+
       clearCheckbox.addEventListener('change', function () {
         if (clearCheckbox.checked) {
           if (objectUrl) {

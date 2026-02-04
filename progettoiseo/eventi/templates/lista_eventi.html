@@ -123,24 +123,24 @@
                             <!-- {{ event.descrizione|truncatewords:20|striptags }} -->
                             {{ event.descrizione|truncatewords:20|plain_text_preview }}
                         </p>
+                        {% if is_direttivo %}
                         <!-- Azioni -->
                         <div class="mt-auto">
                             <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
-                                {% if is_direttivo %}
-                                    {% if event.stato != 'CONCLUSO' %}
-                                        <a href="{% url 'evento-edit' event.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
-                                            <i class="fas fa-edit me-1"></i>Modifica
-                                        </a>
-                                    {% endif %}
-                                    <a href="{% url 'evento-delete' event.pk %}"
-                                       class="btn btn-outline-danger btn-sm"
-                                       data-modal="delete"
-                                       onclick="event.stopPropagation();">
-                                       <i class="fas fa-trash me-1"></i>Elimina
+                                {% if event.stato != 'CONCLUSO' %}
+                                    <a href="{% url 'evento-edit' event.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+                                        <i class="fas fa-edit me-1"></i>Modifica
                                     </a>
                                 {% endif %}
+                                <a href="{% url 'evento-delete' event.pk %}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   data-modal="delete"
+                                   onclick="event.stopPropagation();">
+                                   <i class="fas fa-trash me-1"></i>Elimina
+                                </a>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

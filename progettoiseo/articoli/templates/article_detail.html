@@ -48,7 +48,7 @@
                             <div class="article-tags">
                                 <i class="fas fa-tags text-muted me-2"></i>
                                 {% for tag in article.get_tags_list %}
-                                    <span class="badge bg-secondary me-1">#{{ tag|cut:"," }}</span>
+                                    <span class="article-tag">#{{ tag|cut:"," }}</span>{% if not forloop.last %}<!-- Inserire virgola qui --> {% endif %}
                                 {% endfor %}
                             </div>
                         {% endif %}
@@ -346,9 +346,14 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #2c3e50;
 }
 
-.article-tags .badge {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
+.article-tags {
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.article-tags .article-tag {
+    font-weight: 600;
+    color: #000000;
 }
 
 .breadcrumb {

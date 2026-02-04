@@ -124,21 +124,24 @@
             <div class="flex-grow-1" style="min-width: 260px;">
               {{ form.immagine }}
             </div>
-            <div class="image-preview-wrap">
-              <div class="image-preview" aria-label="Anteprima immagine">
-                <img
-                  id="immagine-preview"
-                  alt="Anteprima immagine selezionata"
-                  {% if form.instance.pk and form.instance.immagine %}
-                    src="{{ form.instance.immagine.url }}"
-                    data-has-initial="1"
-                  {% else %}
-                    src=""
-                    data-has-initial="0"
-                  {% endif %}
-                />
+            <div class="d-flex align-items-start gap-2">
+              <div id="immagine-clear-row" class="d-flex align-items-start"></div>
+              <div class="image-preview-wrap">
+                <div class="image-preview" aria-label="Anteprima immagine">
+                  <img
+                    id="immagine-preview"
+                    alt="Anteprima immagine selezionata"
+                    {% if form.instance.pk and form.instance.immagine %}
+                      src="{{ form.instance.immagine.url }}"
+                      data-has-initial="1"
+                    {% else %}
+                      src=""
+                      data-has-initial="0"
+                    {% endif %}
+                  />
+                </div>
+                <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
               </div>
-              <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
             </div>
           </div>
         </div>
@@ -287,6 +290,22 @@ textarea.form-control {
   min-width: 160px;
 }
 
+#immagine-clear-row .form-check {
+  margin: 0;
+}
+
+#immagine-clear-row .form-check-input {
+  margin-top: 0;
+}
+
+#immagine-clear-row label {
+  margin: 0;
+}
+
+#immagine-clear-row {
+  white-space: nowrap;
+}
+
 .image-preview {
   width: 150px;
   height: 110px;
@@ -398,28 +417,59 @@ textarea.form-control {
       if (endLabelText) endLabelText.textContent = isDateOnly ? 'Fine evento - Data' : 'Fine evento - Data e ora';
 
       if (isDateOnly) {
-        // Salva i valori datetime completi per eventuale ripristino
-        if (!startInput.dataset.prevDatetime) startInput.dataset.prevDatetime = (startInput.value || '').trim();
-        if (!endInput.dataset.prevDatetime) endInput.dataset.prevDatetime = (endInput.value || '').trim();
+        // Passa a solo data mantenendo SEMPRE la data.
+        // Nota: cambiare input.type può far perdere il value in alcuni browser se il formato non coincide.
+        const currentStart = (startInput.value || '').trim();
+        const currentEnd = (endInput.value || '').trim();
 
-        // Passa a solo data mantenendo la parte YYYY-MM-DD
+        // Salva il datetime completo solo se lo abbiamo davvero (contiene 'T').
+        if (currentStart.includes('T')) startInput.dataset.prevDatetime = currentStart;
+        if (currentEnd.includes('T')) endInput.dataset.prevDatetime = currentEnd;
+
+        // Determina le date da mostrare: prima la data corrente, poi quella estratta dal prevDatetime.
+        const startDate = getDatePart(currentStart) || getDatePart((startInput.dataset.prevDatetime || '').trim());
+        const endDate = getDatePart(currentEnd) || getDatePart((endInput.dataset.prevDatetime || '').trim());
+
         startInput.type = 'date';
         endInput.type = 'date';
-        startInput.value = getDatePart(startInput.dataset.prevDatetime);
-        endInput.value = getDatePart(endInput.dataset.prevDatetime);
+        if (startDate) startInput.value = startDate;
+        if (endDate) endInput.value = endDate;
       } else {
         // Torna a data+ora
+        // Nota: in fase di modifica i campi sono già precompilati (YYYY-MM-DDTHH:MM).
+        // Non dobbiamo sovrascriverli con gli orari di default 18/20, a meno che
+        // non stiamo effettivamente tornando da "solo data".
         const prevStart = (startInput.dataset.prevDatetime || '').trim();
         const prevEnd = (endInput.dataset.prevDatetime || '').trim();
+        const currentStart = (startInput.value || '').trim();
+        const currentEnd = (endInput.value || '').trim();
+        const currentHasTimeStart = currentStart.includes('T');
+        const currentHasTimeEnd = currentEnd.includes('T');
 
         startInput.type = 'datetime-local';
         endInput.type = 'datetime-local';
 
-        // Se non c'è un valore precedente valido, usa orari di default sensati
-        const startDate = getDatePart(startInput.value);
-        const endDate = getDatePart(endInput.value);
-        startInput.value = prevStart || (startDate ? `${startDate}T18:00` : '');
-        endInput.value = prevEnd || (endDate ? `${endDate}T20:00` : '');
+        // Priorità:
+        // 1) ripristina il datetime precedente se presente (toggle da solo-data)
+        // 2) altrimenti mantieni l'eventuale datetime già presente (modifica)
+        // 3) fallback: aggiungi orari di default sensati partendo dalla data
+        if (prevStart && prevStart.includes('T')) {
+          startInput.value = prevStart;
+        } else if (currentHasTimeStart) {
+          startInput.value = currentStart;
+        } else {
+          const startDate = getDatePart(currentStart) || (startInput.dataset.prevDate || '').trim();
+          startInput.value = startDate ? `${startDate}T18:00` : '';
+        }
+
+        if (prevEnd && prevEnd.includes('T')) {
+          endInput.value = prevEnd;
+        } else if (currentHasTimeEnd) {
+          endInput.value = currentEnd;
+        } else {
+          const endDate = getDatePart(currentEnd) || (endInput.dataset.prevDate || '').trim();
+          endInput.value = endDate ? `${endDate}T20:00` : '';
+        }
       }
 
       updateEndMin();
@@ -429,9 +479,18 @@ textarea.form-control {
     if (dateOnlyToggle && startInput && endInput) {
       applyDateOnlyState(dateOnlyToggle.checked);
       dateOnlyToggle.addEventListener('change', function () {
-        // prima di passare a date-only, salva i valori attuali
-        startInput.dataset.prevDatetime = (startInput.value || '').trim();
-        endInput.dataset.prevDatetime = (endInput.value || '').trim();
+        // Salva senza rovinare prevDatetime:
+        // - quando si ATTIVA "solo data": memorizza eventuale datetime completo
+        // - quando si DISATTIVA: memorizza la sola data come fallback per riassegnare 18/20
+        if (dateOnlyToggle.checked) {
+          const s = (startInput.value || '').trim();
+          const e = (endInput.value || '').trim();
+          if (s.includes('T')) startInput.dataset.prevDatetime = s;
+          if (e.includes('T')) endInput.dataset.prevDatetime = e;
+        } else {
+          startInput.dataset.prevDate = getDatePart((startInput.value || '').trim());
+          endInput.dataset.prevDate = getDatePart((endInput.value || '').trim());
+        }
         applyDateOnlyState(dateOnlyToggle.checked);
       });
 
@@ -513,6 +572,36 @@ textarea.form-control {
 
     const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
     if (clearCheckbox) {
+      // Sposta la checkbox "rimuovi/svuota" vicino all'anteprima (allineata a destra)
+      // mantenendo name/id originali (così Django la processa correttamente).
+      const clearRow = document.getElementById('immagine-clear-row');
+      const originalLabel = clearCheckbox.id
+        ? document.querySelector(`label[for="${CSS.escape(clearCheckbox.id)}"]`)
+        : null;
+      if (clearRow) {
+        const wrap = document.createElement('div');
+        wrap.className = 'form-check form-switch d-flex align-items-center gap-2';
+
+        clearCheckbox.classList.add('form-check-input');
+        wrap.appendChild(clearCheckbox);
+
+        if (originalLabel) {
+          originalLabel.classList.add('form-check-label', 'text-muted');
+          originalLabel.style.fontSize = '0.9rem';
+          wrap.appendChild(originalLabel);
+        } else {
+          const lbl = document.createElement('label');
+          lbl.className = 'form-check-label text-muted';
+          lbl.style.fontSize = '0.9rem';
+          if (clearCheckbox.id) lbl.setAttribute('for', clearCheckbox.id);
+          lbl.textContent = 'Rimuovi immagine';
+          wrap.appendChild(lbl);
+        }
+
+        clearRow.innerHTML = '';
+        clearRow.appendChild(wrap);
+      }
+
       clearCheckbox.addEventListener('change', function () {
         if (clearCheckbox.checked) {
           if (objectUrl) {
