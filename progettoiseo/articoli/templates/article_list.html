@@ -38,7 +38,7 @@
     <div class="row">
         {% for article in articles %}
             <div class="col-lg-6 col-xl-4 mb-4">
-                <div class="card h-100 shadow-sm article-card position-relative">
+                <div class="card h-100 shadow-sm article-card position-relative{% if not article.tag %} article-card--no-tags{% endif %}{% if article.titolo|length <= 35 %} article-card--short-title{% endif %}">
                     <a href="{% url 'article-detail' article.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'articolo {{ article.titolo }}" style="z-index:1;"></a>
                     <!-- Immagine -->
                     {% if article.immagine %}
@@ -61,42 +61,43 @@
                             {{ article.data_pubblicazione|date:"d M Y" }}
                         </p>
 
-                        <!-- Tag (1 riga riservata, anche se vuota) -->
-                        <div class="mb-2 article-tags" aria-label="Tag articolo">
-                            {% if article.tag %}
+                        <!-- Tag (mostrati solo se presenti) -->
+                        {% if article.tag %}
+                            <div class="mb-2 article-tags" aria-label="Tag articolo">
                                 {% for tag in article.get_tags_list %}
                                     {% if tag %}
                                         <span class="badge bg-secondary me-1">#{{ tag|cut:","}}</span>
                                     {% endif %}
                                 {% endfor %}
-                            {% endif %}
-                        </div>
+                            </div>
+                        {% endif %}
 
                         <!-- Estratto contenuto -->
                         <p class="card-text flex-grow-1 article-excerpt">
                             {{ article.testo|plain_text_preview }}
                         </p>
 
-                        <!-- Azioni -->
-                        <div class="mt-auto">
-                            <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
-                                {# Pulsante "Leggi" rimosso, la card è già cliccabile #}
-                                {% if perms.articoli.change_articolo %}
-
-                                <a href="{% url 'article-edit' article.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
-                                    <i class="fas fa-edit me-1"></i>Modifica
-                                </a>
-                                {% endif %}
-                                {% if perms.articoli.delete_articolo %}
-                                <a href="{% url 'article-delete' article.pk %}"
-                                   class="btn btn-outline-danger btn-sm"
-                                   data-modal="delete"
-                                   onclick="event.stopPropagation();">
-                                   <i class="fas fa-trash me-1"></i>Elimina
-                                </a>
-                                {% endif %}
+                        {% if perms.articoli.change_articolo or perms.articoli.delete_articolo %}
+                            <!-- Azioni -->
+                            <div class="mt-auto">
+                                <div class="btn-group w-100 position-relative" role="group" style="z-index:2;">
+                                    {# Pulsante "Leggi" rimosso, la card è già cliccabile #}
+                                    {% if perms.articoli.change_articolo %}
+                                    <a href="{% url 'article-edit' article.pk %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();">
+                                        <i class="fas fa-edit me-1"></i>Modifica
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.articoli.delete_articolo %}
+                                    <a href="{% url 'article-delete' article.pk %}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       data-modal="delete"
+                                       onclick="event.stopPropagation();">
+                                       <i class="fas fa-trash me-1"></i>Elimina
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -285,38 +286,31 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: color 0.2s;
 }
 
-/* Allineamento: titolo 2 righe, tag 1 riga, testo 3 righe */
-.article-title {
-    line-height: 1.25;
-    min-height: calc(1.25em * 2);
-    max-height: calc(1.25em * 2);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-}
-
-.article-tags {
-    line-height: 1.2;
-    min-height: 1.2em;
-    max-height: 1.2em;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.article-tags .badge {
-    display: inline-block;
-    vertical-align: top;
-}
-
 .article-excerpt {
+    --excerpt-lines: 3;
+    text-align: justify;
     line-height: 1.35;
-    min-height: calc(1.35em * 3);
-    max-height: calc(1.35em * 3);
     overflow: hidden;
+    word-break: break-word;
+
+    /* Clamp multi-line (Chromium/Safari) */
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    line-clamp: var(--excerpt-lines);
+    -webkit-line-clamp: var(--excerpt-lines);
+
+    /* Fallback cross-browser: altezza massima = 3 righe */
+    max-height: calc(1.35em * var(--excerpt-lines));
+}
+
+/* Se mancano i tag, l'estratto può allungarsi */
+.article-card--no-tags .article-excerpt {
+    --excerpt-lines: 4;
+}
+
+/* Se mancano i tag e il titolo è corto, si può arrivare fino a 5 righe */
+.article-card--no-tags.article-card--short-title .article-excerpt {
+    --excerpt-lines: 5;
 }
 
 .article-card:hover .card-title {
