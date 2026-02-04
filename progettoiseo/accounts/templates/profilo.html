@@ -9,7 +9,8 @@
     input[readonly],
     input[disabled] {
         background-color: #e9ecef;
-        border-color: #dee2e6;
+        border-color: #e9ecef;
+        border-width: 2px;
         cursor: not-allowed;
         pointer-events: none;
         user-select: none;
@@ -45,45 +46,52 @@
                     {% endfor %}
                 {% endif %}
 
-                {% if profilo_utente.immagine_profilo %}
-                <div class="text-center mb-3">
-                    <img src="{{ profilo_utente.immagine_profilo.url|default:'/media/accounts/foto_profilo_base.png' }}" alt="Foto profilo attuale"
-                         class="rounded-circle" width="200" height="200" onerror="this.src='/media/accounts/foto_profilo_base.png'">
+                <div class="text-center mb-3 position-relative d-inline-block" style="width: 100%;">
+                    <div id="image-container-with-buttons" class="d-flex justify-content-center align-items-center gap-3">
+                        <div class="position-relative">
+                            {% if profilo_utente.immagine_profilo %}
+                            <img id="current-profile-image" src="{{ profilo_utente.immagine_profilo.url|default:'/media/accounts/foto_profilo_base.png' }}" alt="Foto profilo attuale"
+                                 class="rounded-circle" width="200" height="200" onerror="this.src='/media/accounts/foto_profilo_base.png'">
+                            {% else %}
+                            <img id="current-profile-image" src="/media/accounts/foto_profilo_base.png" alt="Foto profilo attuale"
+                                 class="rounded-circle" width="200" height="200">
+                            {% endif %}
+                            <div id="preview-badge" class="position-absolute top-0 start-0 w-100 text-center" style="display:none; background-color: rgba(0,123,255,0.85); color: white; padding: 4px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                                ANTEPRIMA
+                            </div>
+                        </div>
+                        <div id="image-edit-buttons" style="display:none;">
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('{{ form.immagine_profilo.id_for_label }}').click()">
+                                    <i class="fas fa-upload me-1"></i>Cambia Foto
+                                </button>
+                                <button type="button" class="btn btn-warning btn-sm reset-field-btn" data-field="immagine_profilo" style="display:none;">
+                                    <i class="fas fa-undo me-1"></i>Annulla
+                                </button>
+                                {% if profilo_utente.immagine_profilo %}
+                                <button type="button" id="rimuovi-foto-btn-sidebar" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confermaRimozioneModal">
+                                    <i class="fas fa-trash me-1"></i>Rimuovi Foto
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                {% else %}
-                <div class="text-center mb-3">
-                    <img src="/media/accounts/foto_profilo_base.png" alt="Foto profilo attuale"
-                         class="rounded-circle" width="200" height="200">
-                </div>
-                {% endif %}
 
                 <form method="post" enctype="multipart/form-data" id="profileForm">
                     {% csrf_token %}
 
                     <div id="form-immagine-profilo" class="mb-3" style="display:none;">
-                        <label for="{{ form.immagine_profilo.id_for_label }}" class="form-label">
+                        <label for="{{ form.immagine_profilo.id_for_label }}" class="form-label visually-hidden">
                             Immagine Profilo
-                            <span class="field-modified-indicator ms-2 text-warning" style="display:none;">
-                                <i class="fas fa-exclamation-circle"></i> Modificato
-                            </span>
                         </label>
-                        <div class="input-group">
+                        <div class="d-none">
                             {{ form.immagine_profilo }}
-                            <button type="button" class="btn btn-outline-secondary btn-sm reset-field-btn" data-field="immagine_profilo" style="display:none;">
-                                <i class="fas fa-undo"></i> Annulla
-                            </button>
-                            {% if profilo_utente.immagine_profilo %}
-                                <button type="button" id="rimuovi-foto-btn" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#confermaRimozioneModal" style="display:none;">
-                                    <i class="fas fa-trash me-1"></i>
-                                    Rimuovi Foto Profilo
-                                </button>
-                            {% endif %}
                         </div>
                         {% if form.immagine_profilo.errors %}
                             <div class="text-danger">{{ form.immagine_profilo.errors }}</div>
                         {% endif %}
                     </div>
-                    <br>
                     <div class="mb-3">
                         <label for="{{ form.username.id_for_label }}" class="form-label">
                             Nome utente
@@ -220,7 +228,7 @@
                                         <h5 class="mb-2">
                                             {{ evento.titolo }}
                                             {% if evento.stato == 'ANNULLATO' %}
-                                                <span class="badge bg-danger ms-2">
+                                                <span class="text-danger ms-2">
                                                     <i class="fas fa-times-circle me-1"></i>Annullato
                                                 </span>
                                             {% endif %}
@@ -238,7 +246,7 @@
                                             <i class="fas fa-eye me-1"></i>Dettagli
                                         </a>
                                         <button type="button" class="btn btn-danger btn" data-bs-toggle="modal" data-bs-target="#confermaDisiscrizioneModal{{ evento.pk }}">
-                                            <i class="fas fa-user-minus me-1"></i>Disiscrivi
+                                            <i class="fas fa-user-minus me-1"></i>Disiscriviti
                                         </button>
                                     </div>
                                 </div>
@@ -277,6 +285,7 @@
                                             </button>
                                             <form method="post" action="{% url 'evento-unregister' evento.pk %}" style="display:inline;">
                                                 {% csrf_token %}
+                                                <!-- TODO: Aggiungere supporto per redirect alla pagina profilo nella view -->
                                                 <button type="submit" class="btn btn-danger">
                                                     <i class="fas fa-user-minus me-1"></i>
                                                     Conferma Disiscrizione
@@ -289,9 +298,9 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Non sei iscritto ad alcun evento.
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times text-muted fa-4x mb-3"></i>
+                        <h5 class="text-muted">Non sei iscritto ad alcun evento</h5>
                     </div>
                 {% endif %}
             </div>
@@ -303,7 +312,7 @@
 <div class="modal fade" id="confermaRimozioneModal" tabindex="-1" aria-labelledby="confermaRimozioneModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header bg-warning text-white">
                 <h5 class="modal-title" id="confermaRimozioneModalLabel">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Conferma Rimozione
@@ -313,7 +322,7 @@
             <div class="modal-body">
                 <div class="d-flex align-items-center">
                     <div class="me-3">
-                        <i class="fas fa-user-times display-4 text-danger"></i>
+                        <i class="fas fa-user-times display-4 text-warning"></i>
                     </div>
                     <div>
                         <h6 class="mb-2">Sei sicuro di voler rimuovere la foto profilo?</h6>
@@ -346,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('saveBtn');
     const cancelAllBtn = document.getElementById('cancelAllBtn');
     const profileForm = document.getElementById('profileForm');
+    const imageEditButtons = document.getElementById('image-edit-buttons');
 
     // Campi modificabili
     const editableFields = ['username', 'email', 'first_name', 'last_name'];
@@ -394,13 +404,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Gestione form immagine profilo
-        if (formImmagineProfilo) {
-            formImmagineProfilo.style.display = enable ? 'inline' : 'none';
+        // if (formImmagineProfilo) {
+        //     formImmagineProfilo.style.display = enable ? 'block' : 'none';
+        // }
+
+        // Gestione pulsanti modifica immagine accanto alla foto
+        if (imageEditButtons) {
+            imageEditButtons.style.display = enable ? 'block' : 'none';
         }
 
-        // Gestione pulsante rimozione foto profilo
+        // Gestione pulsante rimozione foto profilo (vecchio, ora nascosto)
         if (rimuoviFotoBtn) {
-            rimuoviFotoBtn.style.display = enable ? 'inline-block' : 'none';
+            rimuoviFotoBtn.style.display = 'none';
         }
 
         // Aggiorna stato pulsanti
@@ -437,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (indicator) {
                 indicator.style.display = isChanged ? 'inline' : 'none';
             }
-            if (resetBtn) {
+            if (resetBtn && fieldName !== 'immagine_profilo') {
                 resetBtn.style.display = isChanged ? 'inline-block' : 'none';
             }
 
@@ -462,18 +477,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageField && imageField.files && imageField.files.length > 0) {
             anyChanges = true;
             fieldChanges['immagine_profilo'] = true;
-            const indicator = imageField.closest('.mb-3').querySelector('.field-modified-indicator');
-            const resetBtn = imageField.closest('.mb-3').querySelector('.reset-field-btn');
-            if (indicator) indicator.style.display = 'inline';
+            const resetBtn = document.querySelector('.reset-field-btn[data-field="immagine_profilo"]');
             if (resetBtn) resetBtn.style.display = 'inline-block';
-            imageField.classList.add('border-warning');
         } else {
             delete fieldChanges['immagine_profilo'];
-            const indicator = imageField ? imageField.closest('.mb-3').querySelector('.field-modified-indicator') : null;
-            const resetBtn = imageField ? imageField.closest('.mb-3').querySelector('.reset-field-btn') : null;
-            if (indicator) indicator.style.display = 'none';
+            const resetBtn = document.querySelector('.reset-field-btn[data-field="immagine_profilo"]');
             if (resetBtn) resetBtn.style.display = 'none';
-            if (imageField) imageField.classList.remove('border-warning');
         }
 
         hasChanges = anyChanges;
@@ -487,6 +496,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (imageField) {
                 imageField.value = '';
                 imageField.classList.remove('border-warning');
+
+                // Ripristina l'immagine originale
+                const currentImage = document.getElementById('current-profile-image');
+                const previewBadge = document.getElementById('preview-badge');
+                if (currentImage) {
+                    currentImage.src = '{{ profilo_utente.immagine_profilo.url|default:"/media/accounts/foto_profilo_base.png" }}';
+                }
+                if (previewBadge) {
+                    previewBadge.style.display = 'none';
+                }
             }
         } else {
             const field = document.getElementById('id_' + fieldName);
@@ -513,6 +532,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageField) {
             imageField.value = '';
             imageField.classList.remove('border-warning');
+
+            // Ripristina l'immagine originale
+            const currentImage = document.getElementById('current-profile-image');
+            const previewBadge = document.getElementById('preview-badge');
+            if (currentImage) {
+                currentImage.src = '{{ profilo_utente.immagine_profilo.url|default:"/media/accounts/foto_profilo_base.png" }}';
+            }
+            if (previewBadge) {
+                previewBadge.style.display = 'none';
+            }
         }
 
         toggleEditMode(false);
@@ -563,7 +592,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener per l'immagine
     if (imageField) {
-        imageField.addEventListener('change', updateFieldIndicators);
+        imageField.addEventListener('change', function() {
+            updateFieldIndicators();
+
+            // Mostra anteprima dell'immagine
+            const file = this.files[0];
+            const currentImage = document.getElementById('current-profile-image');
+            const previewBadge = document.getElementById('preview-badge');
+
+            if (file && currentImage) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage.src = e.target.result;
+                    if (previewBadge) {
+                        previewBadge.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         imageField.addEventListener('focus', function(e) {
             if (this.disabled) {
                 this.blur();
