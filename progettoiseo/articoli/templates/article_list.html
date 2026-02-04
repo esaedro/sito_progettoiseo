@@ -6,7 +6,7 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <h1 class="mb-0">
-                Lista Articoli{% if request.GET.tag %} con tag {{ request.GET.tag|escape }}{% endif %}
+                Lista Articoli{% if request.GET.tag %} {{ request.GET.tag|escape }}{% endif %}
             </h1>
         </div>
         <div class="col-md-4 text-end">
@@ -39,7 +39,7 @@
         {% for article in articles %}
             <div class="col-lg-6 col-xl-4 mb-4">
                 <div class="card h-100 shadow-sm article-card position-relative">
-                    <a href="{% url 'article-detail' article.pk %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'articolo {{ article.titolo }}" style="z-index:1;"></a>
+                    <a href="{% url 'article-detail' article.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'articolo {{ article.titolo }}" style="z-index:1;"></a>
                     <!-- Immagine -->
                     {% if article.immagine %}
                         <img src="{{ article.immagine.url }}" class="card-img-top article-image" alt="{{ article.titolo }}">

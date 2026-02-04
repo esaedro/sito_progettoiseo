@@ -6,7 +6,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="{% url 'article-list' %}" class="text-decoration-none">
+                <a href="{% url 'article-list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="text-decoration-none">
                     <i class="fas fa-arrow-left me-1"></i>Torna alla lista
                 </a>
             </li>

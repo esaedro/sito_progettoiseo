@@ -1,11 +1,37 @@
+import os
+
 from django import forms
+from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.db.models import Case, IntegerField, When
 from .models import Evento
 from accounts.models import ProfiloUtente
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from datetime import timedelta
 from progettoiseo.rich_text import sanitize_rich_text
+
+
+class ClearableFileInputFilename(forms.ClearableFileInput):
+    """ClearableFileInput che mostra solo il nome del file (senza percorso MEDIA)."""
+
+    class _FileDisplay:
+        def __init__(self, file):
+            self._file = file
+            self.name = getattr(file, "name", "")
+            try:
+                self.url = file.url
+            except Exception:
+                self.url = ""
+
+        def __str__(self):
+            return os.path.basename(self.name) if self.name else ""
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if context.get("widget", {}).get("is_initial") and value is not None and hasattr(value, "name"):
+            context["widget"]["value"] = self._FileDisplay(value)
+        return context
 
 class EventoForm(forms.ModelForm):
     class Meta:
@@ -26,8 +52,8 @@ class EventoForm(forms.ModelForm):
                 format='%Y-%m-%dT%H:%M'
             ),
             'luogo': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'immagine': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'posti_massimi': forms.NumberInput(attrs={'class': 'form-control'}),
+            'immagine': ClearableFileInputFilename(attrs={'class': 'form-control-file'}),
+            'posti_massimi': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'}),
             'stato': forms.Select(attrs={'class': 'form-select', 'required': 'required'}),
             'organizzatore': forms.Select(attrs={'class': 'form-select', 'required': 'required'}),
         }
@@ -56,6 +82,11 @@ class EventoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # L'organizzatore deve essere sempre selezionato: rimuove la scelta vuota "---------".
+        self.fields['organizzatore'].required = True
+        if hasattr(self.fields['organizzatore'], 'empty_label'):
+            self.fields['organizzatore'].empty_label = None
 
         # Gestione dello stato in base a creazione/modifica
         is_creating = not self.instance.pk
@@ -109,11 +140,58 @@ class EventoForm(forms.ModelForm):
         direttivo = Group.objects.filter(name='Direttivo').first()
         if direttivo:
             direttivo_users = direttivo.user_set.exclude(username='admin')
-            self.fields['organizzatore'].queryset = ProfiloUtente.objects.filter(
+            base_qs = ProfiloUtente.objects.filter(
                 Q(user__is_superuser=True) | Q(user__in=direttivo_users)
             ).exclude(user__username='admin')
         else:
-            self.fields['organizzatore'].queryset = ProfiloUtente.objects.filter(user__is_superuser=True).exclude(user__username='admin')
+            base_qs = ProfiloUtente.objects.filter(user__is_superuser=True).exclude(user__username='admin')
+
+        # Aggiunge anche un'opzione fissa "Organizzazione Progetto Iseo" come primo elemento e default.
+        org_profile = None
+        try:
+            UserModel = get_user_model()
+            org_user, created = UserModel.objects.get_or_create(
+                username='organizzazione_progetto_iseo',
+                defaults={
+                    'first_name': 'Organizzazione',
+                    'last_name': 'Progetto Iseo',
+                    'is_active': True,
+                },
+            )
+            if created:
+                org_user.set_unusable_password()
+                org_user.save(update_fields=['password'])
+            else:
+                # Se esiste già, assicura che il nome visualizzato sia coerente.
+                changed = False
+                if org_user.first_name != 'Organizzazione':
+                    org_user.first_name = 'Organizzazione'
+                    changed = True
+                if org_user.last_name != 'Progetto Iseo':
+                    org_user.last_name = 'Progetto Iseo'
+                    changed = True
+                if changed:
+                    org_user.save(update_fields=['first_name', 'last_name'])
+
+            org_profile = ProfiloUtente.objects.filter(user=org_user).first()
+        except Exception:
+            org_profile = None
+
+        if org_profile is not None:
+            qs = (ProfiloUtente.objects.filter(pk=org_profile.pk) | base_qs).distinct()
+            qs = qs.annotate(
+                _org_first=Case(
+                    When(pk=org_profile.pk, then=0),
+                    default=1,
+                    output_field=IntegerField(),
+                )
+            ).order_by('_org_first', 'user__first_name', 'user__last_name', 'user__username')
+            self.fields['organizzatore'].queryset = qs
+            if is_creating and not self.is_bound:
+                self.fields['organizzatore'].initial = org_profile.pk
+        else:
+            self.fields['organizzatore'].queryset = base_qs
+
         # Migliora la label
         self.fields['organizzatore'].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username}"
 

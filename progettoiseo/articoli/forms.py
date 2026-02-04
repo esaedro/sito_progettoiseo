@@ -1,7 +1,31 @@
+import os
+
 from django import forms
 from .models import Articolo
 from accounts.models import ProfiloUtente
 from progettoiseo.rich_text import sanitize_rich_text
+
+
+class ClearableFileInputFilename(forms.ClearableFileInput):
+    """ClearableFileInput che mostra solo il nome del file (senza percorso MEDIA)."""
+
+    class _FileDisplay:
+        def __init__(self, file):
+            self._file = file
+            self.name = getattr(file, "name", "")
+            try:
+                self.url = file.url
+            except Exception:
+                self.url = ""
+
+        def __str__(self):
+            return os.path.basename(self.name) if self.name else ""
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if context.get("widget", {}).get("is_initial") and value is not None and hasattr(value, "name"):
+            context["widget"]["value"] = self._FileDisplay(value)
+        return context
 
 class InserimentoArticoloForm(forms.ModelForm):
     titolo = forms.CharField(
@@ -36,7 +60,7 @@ class InserimentoArticoloForm(forms.ModelForm):
     immagine = forms.ImageField(
         label="Immagine",
         required=False,
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+        widget=ClearableFileInputFilename(attrs={'class': 'form-control-file'}),
         help_text="Carica un'immagine per l'articolo (opzionale).",
     )
     testo = forms.CharField(

@@ -117,7 +117,7 @@
         <!-- Immagine -->
         <div class="mb-3">
           <label class="form-label d-flex justify-content-between align-items-end w-100">
-            <strong>Immagine <span class="required-asterisk" aria-hidden="true">*</span></strong>
+            <strong>Immagine</strong>
             <small class="text-muted">(È possibile caricare una sola immagine per evento, caricandone una nuova la precedente verrà sovrascritta)</small>
           </label>
           {% if form.immagine.errors %}
@@ -169,7 +169,10 @@
         <div class="mb-3">
           <label for="{{ form.posti_massimi.id_for_label }}" class="form-label d-flex justify-content-between align-items-end w-100">
             <strong>Numero massimo di posti</strong>
-            <small class="text-muted">(Inserire 0 per indicare posti illimitati)</small>
+            <span class="form-check form-switch m-0">
+              <input class="form-check-input" type="checkbox" role="switch" id="posti-illimitati">
+              <label class="form-check-label text-muted" for="posti-illimitati">Posti illimitati</label>
+            </span>
           </label>
           {% if form.posti_massimi.errors %}
             <div class="text-danger mb-2">
@@ -178,7 +181,9 @@
               {% endfor %}
             </div>
           {% endif %}
-          {{ form.posti_massimi }}
+          <div id="posti-massimi-wrap">
+            {{ form.posti_massimi }}
+          </div>
         </div>
 
         <!-- Stato -->
@@ -383,6 +388,99 @@ textarea.form-control {
         } else {
           const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
           if (!file && hasInitial && initialSrc) showPreview(initialSrc, 'Immagine attuale');
+        }
+      });
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const unlimitedToggle = document.getElementById('posti-illimitati');
+    const postiInput = document.getElementById('{{ form.posti_massimi.id_for_label }}');
+    const postiWrap = document.getElementById('posti-massimi-wrap');
+
+    if (!unlimitedToggle || !postiInput || !postiWrap) return;
+
+    // Non permettere manualmente 0: i posti illimitati si gestiscono solo via switch.
+    postiInput.setAttribute('min', '1');
+    postiInput.setAttribute('step', '1');
+
+    // Ricorda l'ultimo valore "limitato" inserito, per ripristinarlo quando si toglie la spunta.
+    let lastLimitedValue = (postiInput.value || '').trim();
+
+    function getOrCreateUnlimitedHidden() {
+      let hidden = document.getElementById('posti-massimi-unlimited-hidden');
+      if (!hidden) {
+        hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.id = 'posti-massimi-unlimited-hidden';
+        hidden.name = postiInput.name;
+        postiWrap.parentElement.appendChild(hidden);
+      }
+      hidden.value = '0';
+      return hidden;
+    }
+
+    function removeUnlimitedHidden() {
+      const hidden = document.getElementById('posti-massimi-unlimited-hidden');
+      if (hidden && hidden.parentElement) hidden.parentElement.removeChild(hidden);
+    }
+
+    function sanitizeLimitedValue() {
+      if (unlimitedToggle.checked) return;
+      const raw = (postiInput.value || '').trim();
+      if (raw === '0') {
+        postiInput.value = lastLimitedValue && lastLimitedValue !== '0' ? lastLimitedValue : '1';
+        return;
+      }
+      if (!raw) return;
+      const n = Number(raw);
+      if (Number.isFinite(n) && n < 1) postiInput.value = '1';
+    }
+
+    function applyUnlimitedState(isUnlimited) {
+      if (isUnlimited) {
+        // Salva il valore corrente (se diverso da 0) per eventuale ripristino.
+        const current = (postiInput.value || '').trim();
+        if (current && current !== '0') lastLimitedValue = current;
+
+        // Disabilita il campo numerico e invia 0 tramite hidden input.
+        postiInput.value = '';
+        postiInput.disabled = true;
+        postiWrap.classList.add('d-none');
+        getOrCreateUnlimitedHidden();
+      } else {
+        removeUnlimitedHidden();
+        postiInput.disabled = false;
+        postiWrap.classList.remove('d-none');
+
+        // Se stava a 0 (illimitato), ripristina un valore precedente sensato.
+        const current = (postiInput.value || '').trim();
+        if (!current) postiInput.value = lastLimitedValue && lastLimitedValue !== '0' ? lastLimitedValue : '1';
+        sanitizeLimitedValue();
+      }
+    }
+
+    // Stato iniziale: se il valore precompilato è 0, considera "illimitato".
+    const initial = (postiInput.value || '').trim();
+    unlimitedToggle.checked = initial === '0';
+    applyUnlimitedState(unlimitedToggle.checked);
+
+    unlimitedToggle.addEventListener('change', function () {
+      applyUnlimitedState(unlimitedToggle.checked);
+    });
+
+    postiInput.addEventListener('input', sanitizeLimitedValue);
+    postiInput.addEventListener('blur', sanitizeLimitedValue);
+
+    const formEl = postiInput.closest('form');
+    if (formEl) {
+      formEl.addEventListener('submit', function () {
+        if (!unlimitedToggle.checked) {
+          // Se non è illimitato, garantisci un valore >= 1.
+          if (!(postiInput.value || '').trim()) postiInput.value = '1';
+          sanitizeLimitedValue();
         }
       });
     }

@@ -63,7 +63,7 @@
         {% for event in events %}
             <div class="col-lg-6 col-xl-4 mb-4">
                 <div class="card h-100 shadow-sm event-card position-relative {% if user.is_authenticated and event.id in subscribed_event_ids %}is-subscribed{% endif %}">
-                    <a href="{% url 'evento-detail' event.pk %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'evento {{ event.titolo }}" style="z-index:1;"></a>
+                    <a href="{% url 'evento-detail' event.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="stretched-link" tabindex="-1" aria-label="Vai al dettaglio dell'evento {{ event.titolo }}" style="z-index:1;"></a>
                     <!-- Immagine -->
                     {% if event.immagine %}
                         <img src="{{ event.immagine.url }}" class="card-img-top event-image" alt="{{ event.titolo }}">
