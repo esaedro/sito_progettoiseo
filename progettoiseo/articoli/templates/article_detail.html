@@ -106,18 +106,10 @@
     </div>
 </div>
 
-<!-- Modale Bootstrap per zoom immagine articolo -->
-<div class="modal fade" id="articleImageModal" tabindex="-1" aria-labelledby="articleImageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="articleImageModalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-            </div>
-            <div class="modal-body d-flex justify-content-center align-items-center" style="min-height:300px;">
-                <img id="articleImageModalImg" src="" alt="" style="max-width:100%; max-height:70vh; object-fit:contain; border-radius:8px; background:#fff;">
-            </div>
-        </div>
+<!-- Lightbox per zoom immagine articolo (overlay scuro) -->
+<div class="article-lightbox" id="articleLightbox" aria-hidden="true">
+    <div class="article-lightbox__content" role="dialog" aria-modal="true" aria-label="Immagine articolo">
+        <img class="article-lightbox__img" id="articleLightboxImg" src="" alt="">
     </div>
 </div>
 
@@ -148,36 +140,58 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Zoom immagine articolo
+    // Zoom immagine articolo (lightbox semplice)
     const zoomContainer = document.querySelector('.article-image-zoom');
+    const lightboxEl = document.getElementById('articleLightbox');
+    const lightboxImg = document.getElementById('articleLightboxImg');
+
+    const openLightbox = function(imgUrl, imgAlt) {
+        if (!lightboxEl || !lightboxImg || !imgUrl) return;
+        lightboxImg.src = imgUrl;
+        lightboxImg.alt = imgAlt || '';
+        lightboxEl.classList.add('is-open');
+        lightboxEl.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeLightbox = function() {
+        if (!lightboxEl || !lightboxImg) return;
+        lightboxEl.classList.remove('is-open');
+        lightboxEl.setAttribute('aria-hidden', 'true');
+        lightboxImg.removeAttribute('src');
+        document.body.style.overflow = '';
+    };
+
     if (zoomContainer) {
         const imgUrl = zoomContainer.getAttribute('data-image-url');
-        const imgTitle = zoomContainer.getAttribute('data-image-title') || '';
-        const openModal = function() {
-            const modalEl = document.getElementById('articleImageModal');
-            const modalTitle = document.getElementById('articleImageModalLabel');
-            const modalImg = document.getElementById('articleImageModalImg');
-            if (!modalEl || !modalImg) return;
-
-            modalTitle.textContent = imgTitle;
-            modalImg.src = imgUrl;
-            modalImg.alt = imgTitle;
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
+        const imgAlt = zoomContainer.getAttribute('data-image-title') || '';
+        const onOpen = function(e) {
+            e.preventDefault();
+            openLightbox(imgUrl, imgAlt);
         };
 
-        zoomContainer.addEventListener('click', function(e) {
-            e.preventDefault();
-            openModal();
-        });
-
+        zoomContainer.addEventListener('click', onOpen);
         zoomContainer.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openModal();
+                onOpen(e);
             }
         });
     }
+
+    if (lightboxEl) {
+        lightboxEl.addEventListener('click', function(e) {
+            // Chiudi solo se clicco sul background, non sull'immagine
+            if (e.target === lightboxEl) {
+                closeLightbox();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && lightboxEl && lightboxEl.classList.contains('is-open')) {
+            closeLightbox();
+        }
+    });
 
     // Mostra il modal quando si clicca su "Elimina"
     const deleteBtn = document.querySelector('[data-modal="delete"]');
@@ -250,6 +264,38 @@ document.addEventListener('DOMContentLoaded', function() {
     outline: 3px solid rgba(13, 110, 253, 0.35);
     outline-offset: 4px;
     border-radius: 0.5rem;
+}
+
+.article-lightbox {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.82);
+    z-index: 2000;
+    cursor: zoom-out;
+}
+
+.article-lightbox.is-open {
+    display: flex;
+}
+
+.article-lightbox__content {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.article-lightbox__img {
+    display: block;
+    max-width: 98vw;
+    max-height: 96vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background: transparent;
+    cursor: default;
 }
 
 .article-image-placeholder {
