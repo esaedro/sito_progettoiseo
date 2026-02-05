@@ -22,25 +22,37 @@
 
             <!-- Metadati dell'evento -->
             <div class="event-meta mb-4 p-3 bg-light rounded">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <p class="mb-1">
+                <div class="row align-items-stretch">
+                    <div class="col-lg-7 col-md-8 d-flex align-items-center">
+                        <p class="mb-0 event-date">
                             <i class="fas fa-calendar-alt text-muted me-2"></i>
-                            <strong>Data:</strong>
-                            {% if event.inizio_evento and event.fine_evento %}
-                                {% if event.solo_data %}
-                                    Dal {{ event.inizio_evento|date:'d/m/Y' }} al {{ event.fine_evento|date:'d/m/Y' }}
-                                {% else %}
-                                    Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
+                            <strong class="me-1">Data:</strong>
+                            <span class="event-date__value">
+                                {% if event.inizio_evento and event.fine_evento %}
+                                    {% if event.solo_data %}
+                                        {% if event.inizio_evento|date:'Y-m-d' == event.fine_evento|date:'Y-m-d' %}
+                                            Il {{ event.inizio_evento|date:'d/m/Y' }}
+                                        {% else %}
+                                            Dal {{ event.inizio_evento|date:'d/m/Y' }} al {{ event.fine_evento|date:'d/m/Y' }}
+                                        {% endif %}
+                                    {% else %}
+                                        {% if event.inizio_evento|date:'Y-m-d' == event.fine_evento|date:'Y-m-d' %}
+                                            Il {{ event.inizio_evento|date:'d/m/Y' }} dalle {{ event.inizio_evento|date:'H:i' }} alle {{ event.fine_evento|date:'H:i' }}
+                                        {% else %}
+                                            Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% elif event.inizio_evento %}
+                                    {% if event.solo_data %}
+                                        Il {{ event.inizio_evento|date:'d/m/Y' }}
+                                    {% else %}
+                                        Il {{ event.inizio_evento|date:'d/m/Y H:i' }}
+                                    {% endif %}
                                 {% endif %}
-                            {% elif event.inizio_evento %}
-                                {% if event.solo_data %}
-                                    {{ event.inizio_evento|date:'d/m/Y' }}
-                                {% else %}
-                                    {{ event.inizio_evento|date:'d/m/Y H:i' }}
-                                {% endif %}
-                            {% endif %}
+                            </span>
                         </p>
+                    </div>
+                    <div class="col-lg-5 col-md-4 text-end mt-2 mt-md-0">
                         <p class="mb-1">
                             <i class="fas fa-map-marker-alt text-muted me-2"></i>
                             <strong>Luogo:</strong> {{ event.luogo }}
@@ -59,7 +71,7 @@
                             {% else %}{{ event.stato|capfirst }}
                             {% endif %}
                         </p>
-                        <p class="mb-1">
+                        <p class="mb-0">
                             <i class="fas fa-users text-muted me-2"></i>
                             <strong>Posti disponibili:</strong>
                             {% if event.posti_massimi %}
@@ -216,6 +228,18 @@
 .event-meta {
     border-left: 4px solid #007bff;
     font-size: 0.95rem;
+}
+
+.event-date {
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.event-date__value {
+    font-weight: 600;
 }
 
 .event-detail-image {
@@ -376,6 +400,10 @@
 
     .event-meta {
         font-size: 0.9rem;
+    }
+
+    .event-date {
+        font-size: 1.05rem;
     }
 
     .event-text {

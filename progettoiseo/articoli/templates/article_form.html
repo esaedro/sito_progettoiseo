@@ -4,6 +4,9 @@
 <div class="container mt-4">
   <h2>{% if form.instance.pk %}Modifica articolo{% else %}Crea un nuovo articolo{% endif %}</h2>
   <p class="text-muted mb-3"><small><span class="required-asterisk" aria-hidden="true">*</span> I campi contrassegnati con l'asterisco sono obbligatori.</small></p>
+
+  <div id="article-client-errors" class="alert alert-danger d-none" role="alert"></div>
+
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     
@@ -38,7 +41,7 @@
               {% endfor %}
             </div>
           {% endif %}
-          <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+          <div id="autori-box" class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
             <div class="row">
               <div class="col-12 mb-2">
                 <div class="form-check">
@@ -145,18 +148,80 @@
       <!-- Colonna destra - Pulsante Pubblica -->
       <div class="col-md-4">
         <div class="d-flex flex-column align-items-end gap-2">
-          <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
-            Salva
+          <button
+            type="button"
+            id="article-primary-action"
+            class="btn btn-success btn-lg px-4 mb-2"
+            data-article-action="{% if form.instance.pk %}edit{% else %}save{% endif %}">
+            {% if form.instance.pk %}Modifica{% else %}Salva{% endif %}
           </button>
           {% if request.GET.next and request.GET.next|slice:":1" == "/" %}
-            <a href="{{ request.GET.next }}" class="btn btn-secondary">Annulla</a>
+            <a href="{{ request.GET.next }}" class="btn btn-secondary" id="article-cancel-action">Annulla</a>
           {% else %}
-            <a href="{% url 'article-list' %}" class="btn btn-secondary">Annulla</a>
+            <a href="{% url 'article-list' %}" class="btn btn-secondary" id="article-cancel-action">Annulla</a>
           {% endif %}
         </div>
       </div>
     </div>
   </form>
+</div>
+
+{# Modale conferma SALVA #}
+<div class="modal fade" id="confirmSaveArticleModal" tabindex="-1" aria-labelledby="confirmSaveArticleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmSaveArticleModalLabel">Conferma salvataggio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        Vuoi salvare questo articolo?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-success" id="confirm-save-article-btn">Conferma</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Modale conferma MODIFICA #}
+<div class="modal fade" id="confirmEditArticleModal" tabindex="-1" aria-labelledby="confirmEditArticleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmEditArticleModalLabel">Conferma modifica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        Vuoi salvare le modifiche a questo articolo?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-success" id="confirm-edit-article-btn">Conferma</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Modale conferma ANNULLA #}
+<div class="modal fade" id="confirmCancelArticleModal" tabindex="-1" aria-labelledby="confirmCancelArticleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmCancelArticleModalLabel">Conferma annullamento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        Hai modifiche non salvate. Cosa vuoi fare?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Resta qui</button>
+        <button type="button" class="btn btn-danger" id="confirm-cancel-article-btn">Annulla modifiche</button>
+        <button type="button" class="btn btn-success" id="confirm-save-before-leave-article-btn">Salva modifiche</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -176,6 +241,10 @@ textarea.form-control {
 #testo-editor {
   border: 1px solid #ddd;
   border-radius: 10px;
+}
+
+#testo-editor.is-invalid {
+  border-color: #dc3545;
 }
 
 .ql-toolbar.ql-snow {
@@ -621,6 +690,382 @@ textarea.form-control {
       // piccolo delay per consentire il click sui suggerimenti
       window.setTimeout(hideSuggestions, 150);
     });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const primaryBtn = document.getElementById('article-primary-action');
+    if (!primaryBtn) return;
+
+    const formEl = primaryBtn.closest('form');
+    if (!formEl) return;
+
+    const action = (primaryBtn.getAttribute('data-article-action') || '').toLowerCase();
+
+    const saveModalEl = document.getElementById('confirmSaveArticleModal');
+    const editModalEl = document.getElementById('confirmEditArticleModal');
+    const cancelModalEl = document.getElementById('confirmCancelArticleModal');
+    const confirmSaveBtn = document.getElementById('confirm-save-article-btn');
+    const confirmEditBtn = document.getElementById('confirm-edit-article-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-article-btn');
+    const confirmSaveBeforeLeaveBtn = document.getElementById('confirm-save-before-leave-article-btn');
+
+    const cancelLink = document.getElementById('article-cancel-action');
+    const clientErrorsEl = document.getElementById('article-client-errors');
+
+    const titoloEl = document.getElementById('{{ form.titolo.id_for_label }}');
+    const testoHiddenEl = document.getElementById('{{ form.testo.id_for_label }}');
+    const orgCheckbox = document.getElementById('{{ form.a_nome_organizzazione.id_for_label }}');
+    const authorCheckboxes = Array.from(document.querySelectorAll('input[name="autori"]'));
+    const autoriBox = document.getElementById('autori-box');
+    const testoEditorEl = document.getElementById('testo-editor');
+
+    let confirmedSubmit = false;
+    let pendingCancelHref = null;
+
+    // Navigazione "protetta" quando il form è dirty.
+    let guardEnabled = true;
+    let isDirty = false;
+    let initialSnapshot = '';
+    let pendingNav = null; // { type: 'href', href } | { type: 'history', delta }
+    let currentHistoryIndex = 0;
+
+    function clearClientErrors() {
+      if (clientErrorsEl) {
+        clientErrorsEl.innerHTML = '';
+        clientErrorsEl.classList.add('d-none');
+      }
+      if (titoloEl) titoloEl.classList.remove('is-invalid');
+      if (autoriBox) autoriBox.classList.remove('border-danger');
+      if (testoEditorEl) testoEditorEl.classList.remove('is-invalid');
+    }
+
+    function showClientErrors(messages) {
+      if (!clientErrorsEl) return;
+      const ul = document.createElement('ul');
+      ul.className = 'mb-0';
+      messages.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m;
+        ul.appendChild(li);
+      });
+      clientErrorsEl.innerHTML = '';
+      clientErrorsEl.appendChild(ul);
+      clientErrorsEl.classList.remove('d-none');
+      clientErrorsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getEditorPlainText() {
+      const ql = testoEditorEl ? testoEditorEl.querySelector('.ql-editor') : null;
+      const text = ql ? (ql.innerText || '').replace(/\s+/g, ' ').trim() : '';
+      return text;
+    }
+
+    function validateBeforeConfirm() {
+      clearClientErrors();
+
+      const messages = [];
+
+      // Titolo obbligatorio
+      const titoloVal = titoloEl ? (titoloEl.value || '').trim() : '';
+      if (!titoloVal) {
+        messages.push('Il campo "Titolo" è obbligatorio.');
+        if (titoloEl) titoloEl.classList.add('is-invalid');
+      }
+
+      // Testo obbligatorio (controllo sul contenuto effettivo dell'editor)
+      const testoPlain = getEditorPlainText();
+      if (!testoPlain) {
+        messages.push('Il campo "Testo" è obbligatorio.');
+        if (testoEditorEl) testoEditorEl.classList.add('is-invalid');
+      }
+
+      // Autori: almeno un autore, oppure "a nome dell'organizzazione"
+      const orgSelected = !!(orgCheckbox && orgCheckbox.checked);
+      const anyAuthorSelected = authorCheckboxes.some(cb => cb.checked);
+      if (!orgSelected && !anyAuthorSelected) {
+        messages.push('Seleziona almeno un autore oppure scegli "A nome dell\'organizzazione".');
+        if (autoriBox) autoriBox.classList.add('border-danger');
+      }
+
+      if (messages.length > 0) {
+        showClientErrors(messages);
+
+        // Focus sul primo campo "visibile" in errore
+        if (titoloEl && titoloEl.classList.contains('is-invalid')) {
+          titoloEl.focus();
+        } else if (autoriBox && autoriBox.classList.contains('border-danger')) {
+          const first = (orgCheckbox || authorCheckboxes[0]) || null;
+          if (first) first.focus();
+        } else if (testoEditorEl && testoEditorEl.classList.contains('is-invalid')) {
+          testoEditorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return false;
+      }
+
+      // Mantieni il campo nascosto del testo sincronizzato: se per qualsiasi motivo è vuoto, prova a riempirlo.
+      if (testoHiddenEl && !testoHiddenEl.value) {
+        const html = testoEditorEl && testoEditorEl.querySelector('.ql-editor')
+          ? testoEditorEl.querySelector('.ql-editor').innerHTML
+          : '';
+        testoHiddenEl.value = html;
+      }
+
+      return true;
+    }
+
+    function submitForm() {
+      // Usa requestSubmit per attivare gli handler già presenti (es. sync Quill su submit)
+      confirmedSubmit = true;
+      guardEnabled = false;
+      if (typeof formEl.requestSubmit === 'function') formEl.requestSubmit();
+      else formEl.submit();
+    }
+
+    function openModal(modalEl) {
+      if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+        // Fallback (nel caso improbabile in cui Bootstrap non sia disponibile)
+        const msg = action === 'edit'
+          ? 'Vuoi salvare le modifiche a questo articolo?'
+          : 'Vuoi salvare questo articolo?';
+        if (window.confirm(msg)) submitForm();
+        return;
+      }
+
+      const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+      instance.show();
+    }
+
+    function closeModal(modalEl) {
+      if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+      const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+      instance.hide();
+    }
+
+    function normalizeUrl(href) {
+      try {
+        return new URL(href, window.location.href);
+      } catch {
+        return null;
+      }
+    }
+
+    function getCheckedValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(i => i.value).sort();
+    }
+
+    function getTextEditorHtml() {
+      const ql = testoEditorEl ? testoEditorEl.querySelector('.ql-editor') : null;
+      return ql ? (ql.innerHTML || '') : '';
+    }
+
+    function getFormSnapshot() {
+      const titolo = titoloEl ? (titoloEl.value || '').trim() : '';
+      const tagEl = document.getElementById('{{ form.tag.id_for_label }}');
+      const tagVal = tagEl ? (tagEl.value || '').trim() : '';
+
+      const org = !!(orgCheckbox && orgCheckbox.checked);
+      const autori = getCheckedValues('autori');
+
+      const testoHtml = getTextEditorHtml().trim();
+
+      const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
+      const hasNewFile = !!(fileInput && fileInput.files && fileInput.files.length > 0);
+      const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
+      const clearImage = !!(clearCheckbox && clearCheckbox.checked);
+
+      // NB: non serializziamo il contenuto del file, solo la presenza.
+      return JSON.stringify({ titolo, tagVal, org, autori, testoHtml, hasNewFile, clearImage });
+    }
+
+    function recomputeDirty() {
+      if (!guardEnabled) return;
+      isDirty = (getFormSnapshot() !== initialSnapshot);
+    }
+
+    function initDirtyTracking() {
+      // Aspetta un tick per assicurare che Quill abbia applicato il contenuto iniziale.
+      window.setTimeout(function () {
+        initialSnapshot = getFormSnapshot();
+        isDirty = false;
+      }, 0);
+
+      // Input classici
+      formEl.addEventListener('input', recomputeDirty);
+      formEl.addEventListener('change', recomputeDirty);
+
+      // Quill: intercetta gli input della .ql-editor
+      if (testoEditorEl) {
+        testoEditorEl.addEventListener('input', recomputeDirty);
+        testoEditorEl.addEventListener('keyup', recomputeDirty);
+      }
+    }
+
+    function attemptLeave(nav) {
+      if (!guardEnabled) {
+        performLeave(nav);
+        return;
+      }
+
+      recomputeDirty();
+      if (!isDirty) {
+        performLeave(nav);
+        return;
+      }
+
+      pendingNav = nav;
+      openModal(cancelModalEl);
+    }
+
+    function performLeave(nav) {
+      guardEnabled = false;
+      if (!nav) return;
+      if (nav.type === 'href' && nav.href) {
+        window.location.href = nav.href;
+      } else if (nav.type === 'history' && typeof nav.delta === 'number') {
+        history.go(nav.delta);
+      }
+    }
+
+    primaryBtn.addEventListener('click', function () {
+      if (!validateBeforeConfirm()) return;
+      if (action === 'edit') openModal(editModalEl);
+      else openModal(saveModalEl);
+    });
+
+    // Blocca submit "implicito" (es. Enter) se non c'è conferma
+    formEl.addEventListener('submit', function (e) {
+      if (confirmedSubmit) {
+        confirmedSubmit = false;
+        return;
+      }
+
+      e.preventDefault();
+      if (!validateBeforeConfirm()) return;
+
+      if (action === 'edit') openModal(editModalEl);
+      else openModal(saveModalEl);
+    });
+
+    if (confirmSaveBtn) {
+      confirmSaveBtn.addEventListener('click', function () {
+        submitForm();
+      });
+    }
+
+    if (confirmEditBtn) {
+      confirmEditBtn.addEventListener('click', function () {
+        submitForm();
+      });
+    }
+
+    // Annulla: apri modale e, su conferma, naviga
+    if (cancelLink) {
+      cancelLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        pendingCancelHref = cancelLink.getAttribute('href');
+        attemptLeave({ type: 'href', href: pendingCancelHref });
+      });
+    }
+
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', function () {
+        if (pendingNav) performLeave(pendingNav);
+      });
+    }
+
+    if (confirmSaveBeforeLeaveBtn) {
+      confirmSaveBeforeLeaveBtn.addEventListener('click', function () {
+        // Chiude il modale di annullamento e avvia il flusso di salvataggio (con validazione + modale salva/modifica).
+        closeModal(cancelModalEl);
+        // Riusa il bottone principale (apre il modale giusto: salva o modifica).
+        primaryBtn.click();
+      });
+    }
+
+    // Intercetta click su qualunque link (navbar inclusa)
+    document.addEventListener('click', function (e) {
+      const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+
+      // Lascio passare: nuovi tab, download, modal trigger, anchor vuote.
+      if (a.target && a.target.toLowerCase() === '_blank') return;
+      if (a.hasAttribute('download')) return;
+      if (a.getAttribute('data-bs-toggle') === 'modal') return;
+
+      const rawHref = a.getAttribute('href') || '';
+      if (!rawHref || rawHref === '#') return;
+      if (rawHref.startsWith('javascript:')) return;
+
+      // Evita loop: se sto già navigando, non bloccare.
+      if (!guardEnabled) return;
+
+      const url = normalizeUrl(rawHref);
+      if (!url) return;
+
+      // Se è lo stesso URL (solo hash change), non serve conferma.
+      const samePage = (url.origin === window.location.origin && url.pathname === window.location.pathname && url.search === window.location.search);
+      if (samePage) return;
+
+      e.preventDefault();
+      attemptLeave({ type: 'href', href: url.toString() });
+    }, true);
+
+    // Back/forward: push di uno state "sentinella" e intercetta popstate
+    function initHistoryGuard() {
+      try {
+        const state = history.state || {};
+        if (typeof state.__articleFormIdx === 'number') {
+          currentHistoryIndex = state.__articleFormIdx;
+        } else {
+          currentHistoryIndex = 0;
+          history.replaceState({ ...(state || {}), __articleFormIdx: currentHistoryIndex }, document.title);
+        }
+        // Aggiunge uno state per poter intercettare il "back".
+        history.pushState({ ...(history.state || {}), __articleFormIdx: currentHistoryIndex + 1 }, document.title);
+        currentHistoryIndex = currentHistoryIndex + 1;
+      } catch {
+        // Se il browser blocca pushState, degrada su beforeunload.
+      }
+
+      window.addEventListener('popstate', function (ev) {
+        if (!guardEnabled) return;
+
+        const nextIdx = ev.state && typeof ev.state.__articleFormIdx === 'number' ? ev.state.__articleFormIdx : null;
+        // Direzione stimata: se non ho idx, assumo back (-1)
+        const delta = (nextIdx === null) ? -1 : (nextIdx < currentHistoryIndex ? -1 : 1);
+
+        // Rimetti lo state sentinella se l'utente decide di restare
+        attemptLeave({ type: 'history', delta });
+        // Se il modale si apre (dirty), bisogna "ripristinare" la pagina corrente
+        // perché il back è già avvenuto. Lo facciamo subito qui.
+        recomputeDirty();
+        if (isDirty) {
+          try {
+            history.pushState({ ...(history.state || {}), __articleFormIdx: currentHistoryIndex }, document.title);
+          } catch {
+            // ignore
+          }
+        } else {
+          // Non dirty: lascia andare e aggiorna indice
+          if (nextIdx !== null) currentHistoryIndex = nextIdx;
+        }
+      });
+    }
+
+    // Chiusura tab / refresh / cambio URL non intercettabile con modale custom
+    window.addEventListener('beforeunload', function (e) {
+      if (!guardEnabled) return;
+      recomputeDirty();
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    });
+
+    initDirtyTracking();
+    initHistoryGuard();
   });
 </script>
 {% endblock %}
