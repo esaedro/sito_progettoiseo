@@ -5,6 +5,9 @@
   {% if is_direttivo %}
   <h2>{% if form.instance.pk %}Modifica evento{% else %}Crea un nuovo evento{% endif %}</h2>
   <p class="text-muted mb-3"><small><span class="required-asterisk" aria-hidden="true">*</span> I campi contrassegnati con l'asterisco sono obbligatori.</small></p>
+
+  <div id="event-client-errors" class="alert alert-danger d-none" role="alert"></div>
+
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% if form.errors %}
@@ -208,19 +211,177 @@
       </div>
       <div class="col-md-4">
         <div class="d-flex flex-column align-items-end gap-2">
-          <button type="submit" class="btn btn-success btn-lg px-4 mb-2">
-            Salva
+          <button
+            type="button"
+            class="btn btn-success btn-lg px-4 mb-2"
+            id="event-primary-action"
+            data-event-action="{% if form.instance.pk %}edit{% else %}save{% endif %}"
+          >
+            {% if form.instance.pk %}Modifica{% else %}Salva{% endif %}
           </button>
           {% if request.GET.next and request.GET.next|slice:":1" == "/" %}
-            <a href="{{ request.GET.next }}" class="btn btn-secondary">Annulla</a>
+            <a href="{{ request.GET.next }}" class="btn btn-secondary" id="event-cancel-action">Annulla</a>
           {% else %}
-            <a href="{% url 'lista_eventi' %}" class="btn btn-secondary">Annulla</a>
+            <a href="{% url 'lista_eventi' %}" class="btn btn-secondary" id="event-cancel-action">Annulla</a>
           {% endif %}
         </div>
       </div>
     </div>
 
   </form>
+
+  {# Modale conferma SALVA #}
+  <div class="modal fade" id="confirmSaveEventModal" tabindex="-1" aria-labelledby="confirmSaveEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="confirmSaveEventModalLabel">
+            <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i>
+            Conferma salvataggio
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-floppy-disk display-4 text-success me-3" aria-hidden="true"></i>
+            <div>
+              <h6 class="mb-2">Vuoi salvare questo evento?</h6>
+              <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              L'evento verrà pubblicato con i dati inseriti e sarà modificabile in seguito.
+            </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>
+            Annulla
+          </button>
+          <button type="button" class="btn btn-success" id="confirm-save-event-btn">
+            <i class="fa-solid fa-check me-1" aria-hidden="true"></i>
+            Conferma
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Modale conferma MODIFICA #}
+  <div class="modal fade" id="confirmEditEventModal" tabindex="-1" aria-labelledby="confirmEditEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="confirmEditEventModalLabel">
+            <i class="fa-solid fa-pen-to-square me-2" aria-hidden="true"></i>
+            Conferma modifica
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-pen display-4 text-success me-3" aria-hidden="true"></i>
+            <div>
+              <h6 class="mb-2">Vuoi salvare le modifiche a questo evento?</h6>
+              <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              Le modifiche sostituiranno i dati precedenti.
+            </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>
+            Annulla
+          </button>
+          <button type="button" class="btn btn-success" id="confirm-edit-event-btn">
+            <i class="fa-solid fa-check me-1" aria-hidden="true"></i>
+            Conferma
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Modale WARNING (MODIFICA) - date sospette #}
+  <div class="modal fade" id="confirmEditEventWarningModal" tabindex="-1" aria-labelledby="confirmEditEventWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="confirmEditEventWarningModalLabel">
+            <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+            Attenzione: date sospette
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-circle display-4 text-warning me-3" aria-hidden="true"></i>
+            <div>
+              <h6 class="mb-2">Potresti aver inserito date non corrette.</h6>
+              <p class="text-muted mb-2">
+               <!--  <i class="fas fa-info-circle me-1" aria-hidden="true"></i> -->
+                Controlla i valori: se sono giusti puoi comunque salvare.
+              </p>
+              <ul class="mb-0" id="event-suspicious-dates-list"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>
+            Torna a modificare
+          </button>
+          <button type="button" class="btn btn-success text-white" id="confirm-edit-warning-save-anyway-event-btn">
+            <i class="fa-solid fa-check me-1" aria-hidden="true"></i>
+            Salva comunque
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Modale conferma ANNULLA / LASCIA PAGINA #}
+  <div class="modal fade" id="confirmCancelEventModal" tabindex="-1" aria-labelledby="confirmCancelEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="confirmCancelEventModalLabel">
+            <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+            Uscita dal form
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle display-4 text-warning me-3"></i>
+            <div>
+              <h6 class="mb-2">Hai modifiche non salvate.</h6>
+              <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              Puoi restare qui, annullare le modifiche oppure salvarle prima di uscire.
+            </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>
+            Resta qui
+          </button>
+        <button type="button" class="btn btn-danger" id="confirm-cancel-event-btn">
+          <i class="fas fa-right-from-bracket me-1"></i>
+          Annulla modifiche
+        </button>
+          <button type="button" class="btn btn-success" id="confirm-save-before-leave-event-btn">
+            <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>
+            Salva
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   {% else %}
     <div class="alert alert-danger">
       Solo i membri del direttivo possono creare o modificare eventi.<br>
@@ -246,6 +407,10 @@ textarea.form-control {
 #descrizione-editor {
   border: 1px solid #ddd;
   border-radius: 10px;
+}
+
+#descrizione-editor.is-invalid {
+  border-color: #dc3545;
 }
 
 .ql-toolbar.ql-snow {
@@ -771,6 +936,494 @@ textarea.form-control {
         syncHiddenField();
       });
     }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const primaryBtn = document.getElementById('event-primary-action');
+    if (!primaryBtn) return;
+
+    const formEl = primaryBtn.closest('form');
+    if (!formEl) return;
+
+    const action = (primaryBtn.getAttribute('data-event-action') || '').toLowerCase();
+
+    const saveModalEl = document.getElementById('confirmSaveEventModal');
+    const editModalEl = document.getElementById('confirmEditEventModal');
+    const editWarningModalEl = document.getElementById('confirmEditEventWarningModal');
+    const cancelModalEl = document.getElementById('confirmCancelEventModal');
+    const confirmSaveBtn = document.getElementById('confirm-save-event-btn');
+    const confirmEditBtn = document.getElementById('confirm-edit-event-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-event-btn');
+    const confirmEditWarningSaveAnywayBtn = document.getElementById('confirm-edit-warning-save-anyway-event-btn');
+    const confirmSaveBeforeLeaveBtn = document.getElementById('confirm-save-before-leave-event-btn');
+
+    const suspiciousDatesListEl = document.getElementById('event-suspicious-dates-list');
+
+    const cancelLink = document.getElementById('event-cancel-action');
+    const clientErrorsEl = document.getElementById('event-client-errors');
+
+    const titoloEl = document.getElementById('{{ form.titolo.id_for_label }}');
+    const descrizioneHiddenEl = document.getElementById('{{ form.descrizione.id_for_label }}');
+    const descrizioneEditorEl = document.getElementById('descrizione-editor');
+    const inizioEl = document.getElementById('{{ form.inizio_evento.id_for_label }}');
+    const fineEl = document.getElementById('{{ form.fine_evento.id_for_label }}');
+    const luogoEl = document.getElementById('{{ form.luogo.id_for_label }}');
+    const organizzatoreEl = document.getElementById('{{ form.organizzatore.id_for_label }}');
+    const soloDataEl = document.getElementById('solo-data');
+    const postiInput = document.getElementById('{{ form.posti_massimi.id_for_label }}');
+    const unlimitedToggle = document.getElementById('posti-illimitati');
+    const statoEl = document.getElementById('{{ form.stato.id_for_label }}');
+
+    let confirmedSubmit = false;
+    let guardEnabled = true;
+    let isDirty = false;
+    let initialSnapshot = '';
+    let pendingNav = null; // { type: 'href', href } | { type: 'history', delta }
+
+    function updatePrimaryButtonState() {
+      if (action === 'edit') {
+        primaryBtn.disabled = !isDirty;
+        primaryBtn.setAttribute('aria-disabled', primaryBtn.disabled ? 'true' : 'false');
+      } else {
+        primaryBtn.disabled = false;
+        primaryBtn.setAttribute('aria-disabled', 'false');
+      }
+    }
+
+    function clearClientErrors() {
+      if (clientErrorsEl) {
+        clientErrorsEl.innerHTML = '';
+        clientErrorsEl.classList.add('d-none');
+      }
+      if (titoloEl) titoloEl.classList.remove('is-invalid');
+      if (descrizioneEditorEl) descrizioneEditorEl.classList.remove('is-invalid');
+      if (inizioEl) inizioEl.classList.remove('is-invalid');
+      if (fineEl) fineEl.classList.remove('is-invalid');
+      if (luogoEl) luogoEl.classList.remove('is-invalid');
+      if (organizzatoreEl) organizzatoreEl.classList.remove('is-invalid');
+    }
+
+    function showClientErrors(messages) {
+      if (!clientErrorsEl) return;
+      const ul = document.createElement('ul');
+      ul.className = 'mb-0';
+      messages.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m;
+        ul.appendChild(li);
+      });
+      clientErrorsEl.innerHTML = '';
+      clientErrorsEl.appendChild(ul);
+      clientErrorsEl.classList.remove('d-none');
+      clientErrorsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getEditorPlainText() {
+      const ql = descrizioneEditorEl ? descrizioneEditorEl.querySelector('.ql-editor') : null;
+      const text = ql ? (ql.innerText || '').replace(/\s+/g, ' ').trim() : '';
+      return text;
+    }
+
+    function getEditorHtml() {
+      const ql = descrizioneEditorEl ? descrizioneEditorEl.querySelector('.ql-editor') : null;
+      return ql ? (ql.innerHTML || '') : '';
+    }
+
+    function validateStartEnd() {
+      if (!inizioEl || !fineEl) return true;
+
+      const startVal = (inizioEl.value || '').trim();
+      const endVal = (fineEl.value || '').trim();
+
+      // Se uno dei due è vuoto, il required viene gestito altrove.
+      if (!startVal || !endVal) {
+        fineEl.setCustomValidity('');
+        fineEl.classList.remove('is-invalid');
+        return true;
+      }
+
+      function getDatePart(v) {
+        const s = (v || '').trim();
+        if (!s) return '';
+        return s.includes('T') ? s.split('T')[0] : s;
+      }
+
+      const isDateOnly = (inizioEl.type === 'date') || (fineEl.type === 'date');
+      const startCmp = isDateOnly ? getDatePart(startVal) : startVal;
+      const endCmp = isDateOnly ? getDatePart(endVal) : endVal;
+
+      const ok = endCmp >= startCmp;
+      if (ok) {
+        fineEl.setCustomValidity('');
+        fineEl.classList.remove('is-invalid');
+        return true;
+      }
+
+      const msg = isDateOnly
+        ? 'La data di fine deve essere successiva o uguale alla data di inizio.'
+        : 'La data/ora di fine deve essere successiva o uguale alla data/ora di inizio.';
+      fineEl.setCustomValidity(msg);
+      fineEl.classList.add('is-invalid');
+      return false;
+    }
+
+    function validateBeforeConfirm() {
+      clearClientErrors();
+      const messages = [];
+
+      const titoloVal = titoloEl ? (titoloEl.value || '').trim() : '';
+      if (!titoloVal) {
+        messages.push('Il titolo è obbligatorio.');
+        if (titoloEl) titoloEl.classList.add('is-invalid');
+      }
+
+      const descPlain = getEditorPlainText();
+      if (!descPlain) {
+        messages.push('La descrizione è obbligatoria.');
+        if (descrizioneEditorEl) descrizioneEditorEl.classList.add('is-invalid');
+      }
+
+      const inizioVal = inizioEl ? (inizioEl.value || '').trim() : '';
+      if (!inizioVal) {
+        messages.push('La data di inizio evento è obbligatoria.');
+        if (inizioEl) inizioEl.classList.add('is-invalid');
+      }
+
+      const fineVal = fineEl ? (fineEl.value || '').trim() : '';
+      if (!fineVal) {
+        messages.push('La data di fine evento è obbligatoria.');
+        if (fineEl) fineEl.classList.add('is-invalid');
+      }
+
+      // Coerenza fine >= inizio
+      if (inizioVal && fineVal && !validateStartEnd()) {
+        messages.push(fineEl && fineEl.validationMessage ? fineEl.validationMessage : 'La data di fine non può precedere la data di inizio.');
+      }
+
+      const luogoVal = luogoEl ? (luogoEl.value || '').trim() : '';
+      if (!luogoVal) {
+        messages.push('Il luogo è obbligatorio.');
+        if (luogoEl) luogoEl.classList.add('is-invalid');
+      }
+
+      const orgVal = organizzatoreEl ? (organizzatoreEl.value || '').trim() : '';
+      if (!orgVal) {
+        messages.push('L’organizzatore è obbligatorio.');
+        if (organizzatoreEl) organizzatoreEl.classList.add('is-invalid');
+      }
+
+      if (messages.length > 0) {
+        showClientErrors(messages);
+        return false;
+      }
+
+      // Mantieni il campo nascosto sincronizzato.
+      if (descrizioneHiddenEl && !descrizioneHiddenEl.value) {
+        const html = getEditorHtml().trim();
+        if (html) descrizioneHiddenEl.value = html;
+      }
+
+      return true;
+    }
+
+    function openModal(modalEl) {
+      if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+      const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+      instance.show();
+    }
+
+    function closeModal(modalEl) {
+      if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+      const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+      instance.hide();
+    }
+
+    function submitForm() {
+      confirmedSubmit = true;
+      guardEnabled = false;
+      if (typeof formEl.requestSubmit === 'function') formEl.requestSubmit();
+      else formEl.submit();
+    }
+
+    function normalizeUrl(href) {
+      try {
+        return new URL(href, window.location.href);
+      } catch {
+        return null;
+      }
+    }
+
+    function getFormSnapshot() {
+      const titolo = titoloEl ? (titoloEl.value || '').trim() : '';
+      const descrizioneHtml = getEditorHtml().trim();
+      const inizio = inizioEl ? (inizioEl.value || '').trim() : '';
+      const fine = fineEl ? (fineEl.value || '').trim() : '';
+      const luogo = luogoEl ? (luogoEl.value || '').trim() : '';
+      const organizzatore = organizzatoreEl ? (organizzatoreEl.value || '').trim() : '';
+      const soloData = !!(soloDataEl && soloDataEl.checked);
+
+      const unlimited = !!(unlimitedToggle && unlimitedToggle.checked);
+      const postiVal = postiInput ? (postiInput.value || '').trim() : '';
+      const stato = statoEl ? (statoEl.value || '').trim() : '';
+
+      const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
+      const hasNewFile = !!(fileInput && fileInput.files && fileInput.files.length > 0);
+      const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
+      const clearImage = !!(clearCheckbox && clearCheckbox.checked);
+
+      return JSON.stringify({ titolo, descrizioneHtml, inizio, fine, luogo, organizzatore, soloData, unlimited, postiVal, stato, hasNewFile, clearImage });
+    }
+
+    function recomputeDirty() {
+      if (!guardEnabled) return;
+      isDirty = (getFormSnapshot() !== initialSnapshot);
+      updatePrimaryButtonState();
+    }
+
+    function initDirtyTracking() {
+      // Aspetta un tick per assicurare che Quill abbia caricato eventuale contenuto iniziale.
+      window.setTimeout(function () {
+        initialSnapshot = getFormSnapshot();
+        isDirty = false;
+        updatePrimaryButtonState();
+      }, 0);
+
+      formEl.addEventListener('input', recomputeDirty);
+      formEl.addEventListener('change', recomputeDirty);
+
+      if (descrizioneEditorEl) {
+        descrizioneEditorEl.addEventListener('input', recomputeDirty);
+        descrizioneEditorEl.addEventListener('keyup', recomputeDirty);
+      }
+    }
+
+    function attemptLeave(nav) {
+      if (!guardEnabled) {
+        performLeave(nav);
+        return;
+      }
+
+      recomputeDirty();
+      if (!isDirty) {
+        performLeave(nav);
+        return;
+      }
+
+      pendingNav = nav;
+      openModal(cancelModalEl);
+    }
+
+    function performLeave(nav) {
+      guardEnabled = false;
+      if (!nav) return;
+      if (nav.type === 'href' && nav.href) {
+        window.location.href = nav.href;
+      } else if (nav.type === 'history' && typeof nav.delta === 'number') {
+        window.history.go(nav.delta);
+      }
+    }
+
+    function parseLocalDateTime(value) {
+      const v = (value || '').trim();
+      if (!v) return null;
+
+      if (v.includes('T')) {
+        const parts = v.split('T');
+        if (parts.length !== 2) return null;
+        const datePart = parts[0];
+        const timePart = parts[1];
+        const d = datePart.split('-').map(n => Number(n));
+        const t = timePart.split(':').map(n => Number(n));
+        if (d.length !== 3 || d.some(n => !Number.isFinite(n))) return null;
+        const y = d[0], m = d[1], day = d[2];
+        const hh = Number.isFinite(t[0]) ? t[0] : 0;
+        const mm = Number.isFinite(t[1]) ? t[1] : 0;
+        return new Date(y, m - 1, day, hh, mm, 0, 0);
+      }
+
+      const d = v.split('-').map(n => Number(n));
+      if (d.length !== 3 || d.some(n => !Number.isFinite(n))) return null;
+      const y = d[0], m = d[1], day = d[2];
+      return new Date(y, m - 1, day, 0, 0, 0, 0);
+    }
+
+    function renderSuspiciousWarnings(messages) {
+      if (!suspiciousDatesListEl) return;
+      suspiciousDatesListEl.innerHTML = '';
+      messages.forEach(msg => {
+        const li = document.createElement('li');
+        li.textContent = msg;
+        suspiciousDatesListEl.appendChild(li);
+      });
+    }
+
+    function getSuspiciousDateWarnings() {
+      if (!inizioEl) return [];
+
+      const startVal = (inizioEl.value || '').trim();
+      const endVal = fineEl ? (fineEl.value || '').trim() : '';
+
+      const startDt = parseLocalDateTime(startVal);
+      const endDt = parseLocalDateTime(endVal);
+      const warnings = [];
+
+      if (startDt) {
+        const now = new Date();
+        if (startDt.getTime() < now.getTime()) {
+          warnings.push('La data di inizio evento risulta nel passato.');
+        }
+      }
+
+      if (startDt && endDt) {
+        const diffMs = endDt.getTime() - startDt.getTime();
+        const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+        if (diffMs > oneYearMs) {
+          const days = Math.round(diffMs / (24 * 60 * 60 * 1000));
+          warnings.push(`La data di fine è molto distante da quella di inizio (circa ${days} giorni). Potresti aver sbagliato l’anno.`);
+        }
+      }
+
+      return warnings;
+    }
+
+    function openEditFlow() {
+      // In modifica: se le date sembrano sospette, avvisa con un modale giallo.
+      const warnings = getSuspiciousDateWarnings();
+      if (warnings.length > 0 && editWarningModalEl) {
+        renderSuspiciousWarnings(warnings);
+        openModal(editWarningModalEl);
+        return;
+      }
+
+      openModal(editModalEl);
+    }
+
+    primaryBtn.addEventListener('click', function () {
+      if (!validateBeforeConfirm()) return;
+      if (action === 'edit') openEditFlow();
+      else openModal(saveModalEl);
+    });
+
+    // Blocca submit implicito (Enter) se non c’è conferma
+    formEl.addEventListener('submit', function (e) {
+      if (confirmedSubmit) {
+        confirmedSubmit = false;
+        return;
+      }
+
+      e.preventDefault();
+      if (!validateBeforeConfirm()) return;
+
+      if (action === 'edit') openEditFlow();
+      else openModal(saveModalEl);
+    });
+
+    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', submitForm);
+    if (confirmEditBtn) confirmEditBtn.addEventListener('click', submitForm);
+
+    if (confirmEditWarningSaveAnywayBtn) {
+      confirmEditWarningSaveAnywayBtn.addEventListener('click', function () {
+        // Questo modale è già una conferma “extra”: se l’utente procede, salva così com’è.
+        closeModal(editWarningModalEl);
+        submitForm();
+      });
+    }
+
+    if (cancelLink) {
+      cancelLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        const href = (cancelLink.getAttribute('href') || '').trim();
+        attemptLeave({ type: 'href', href });
+      });
+    }
+
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', function () {
+        closeModal(cancelModalEl);
+
+        if (pendingNav) {
+          performLeave(pendingNav);
+          return;
+        }
+
+        // Fallback: se il modale è stato aperto senza pendingNav, esci usando l'href di "Annulla".
+        const href = cancelLink ? (cancelLink.getAttribute('href') || '').trim() : '';
+        if (href) {
+          performLeave({ type: 'href', href });
+          return;
+        }
+      });
+    }
+
+    if (confirmSaveBeforeLeaveBtn) {
+      confirmSaveBeforeLeaveBtn.addEventListener('click', function () {
+        closeModal(cancelModalEl);
+        primaryBtn.click();
+      });
+    }
+
+    // Intercetta click su qualunque link (navbar inclusa)
+    document.addEventListener('click', function (e) {
+      const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+
+      if (a.target && a.target.toLowerCase() === '_blank') return;
+      if (a.hasAttribute('download')) return;
+      if (a.getAttribute('data-bs-toggle') === 'modal') return;
+
+      const rawHref = a.getAttribute('href') || '';
+      if (!rawHref || rawHref === '#') return;
+      if (rawHref.startsWith('javascript:')) return;
+      if (!guardEnabled) return;
+
+      const url = normalizeUrl(rawHref);
+      if (!url) return;
+
+      const samePage = (url.origin === window.location.origin && url.pathname === window.location.pathname && url.search === window.location.search);
+      if (samePage) return;
+
+      e.preventDefault();
+      attemptLeave({ type: 'href', href: url.toString() });
+    }, true);
+
+    // Back/forward: best-effort (non completamente affidabile in tutti i browser)
+    function initHistoryGuard() {
+      try {
+        window.history.pushState({ __eventFormGuard: true }, '', window.location.href);
+      } catch {
+        // ignora
+      }
+
+      window.addEventListener('popstate', function () {
+        if (!guardEnabled) return;
+        recomputeDirty();
+        if (!isDirty) return;
+
+        pendingNav = { type: 'history', delta: -1 };
+        openModal(cancelModalEl);
+
+        try {
+          window.history.pushState({ __eventFormGuard: true }, '', window.location.href);
+        } catch {
+          // ignora
+        }
+      });
+    }
+
+    // Chiusura tab / refresh
+    window.addEventListener('beforeunload', function (e) {
+      if (!guardEnabled) return;
+      recomputeDirty();
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    });
+
+    initDirtyTracking();
+    initHistoryGuard();
   });
 </script>
 {% endblock %}

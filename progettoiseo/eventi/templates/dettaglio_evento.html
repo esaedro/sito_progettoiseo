@@ -23,62 +23,68 @@
             <!-- Metadati dell'evento -->
             <div class="event-meta mb-4 p-3 bg-light rounded">
                 <div class="row align-items-stretch">
-                    <div class="col-lg-7 col-md-8 d-flex align-items-center">
+                    <div class="col-lg-6 col-md-6 d-flex align-items-center">
                         <p class="mb-0 event-date">
-                            <i class="fas fa-calendar-alt text-muted me-2"></i>
-                            <strong class="me-1">Data:</strong>
+                            <i class="fas fa-calendar-alt text-muted"></i>
                             <span class="event-date__value">
                                 {% if event.inizio_evento and event.fine_evento %}
                                     {% if event.solo_data %}
                                         {% if event.inizio_evento|date:'Y-m-d' == event.fine_evento|date:'Y-m-d' %}
-                                            Il {{ event.inizio_evento|date:'d/m/Y' }}
+                                            <span class="d-block">Il {{ event.inizio_evento|date:'d/m/Y' }}</span>
                                         {% else %}
-                                            Dal {{ event.inizio_evento|date:'d/m/Y' }} al {{ event.fine_evento|date:'d/m/Y' }}
+                                            <span class="d-block"><span class="event-date__range-label">Dal</span> {{ event.inizio_evento|date:'d/m/Y' }}</span>
+                                            <span class="d-block"><span class="event-date__range-label">al</span> {{ event.fine_evento|date:'d/m/Y' }}</span>
                                         {% endif %}
                                     {% else %}
                                         {% if event.inizio_evento|date:'Y-m-d' == event.fine_evento|date:'Y-m-d' %}
-                                            Il {{ event.inizio_evento|date:'d/m/Y' }} dalle {{ event.inizio_evento|date:'H:i' }} alle {{ event.fine_evento|date:'H:i' }}
+                                            <span class="d-block">Il {{ event.inizio_evento|date:'d/m/Y' }}</span>
+                                            <span class="d-block">{{ event.inizio_evento|date:'H:i' }} - {{ event.fine_evento|date:'H:i' }}</span>
                                         {% else %}
-                                            Dal {{ event.inizio_evento|date:'d/m/Y H:i' }} al {{ event.fine_evento|date:'d/m/Y H:i' }}
+                                            <span class="d-block"><span class="event-date__range-label">Dal</span> {{ event.inizio_evento|date:'d/m/Y H:i' }}</span>
+                                            <span class="d-block"><span class="event-date__range-label">al</span> {{ event.fine_evento|date:'d/m/Y H:i' }}</span>
                                         {% endif %}
                                     {% endif %}
                                 {% elif event.inizio_evento %}
                                     {% if event.solo_data %}
-                                        Il {{ event.inizio_evento|date:'d/m/Y' }}
+                                        <span class="d-block">Il {{ event.inizio_evento|date:'d/m/Y' }}</span>
                                     {% else %}
-                                        Il {{ event.inizio_evento|date:'d/m/Y H:i' }}
+                                        <span class="d-block">Il {{ event.inizio_evento|date:'d/m/Y H:i' }}</span>
                                     {% endif %}
                                 {% endif %}
                             </span>
                         </p>
                     </div>
-                    <div class="col-lg-5 col-md-4 text-end mt-2 mt-md-0">
+                    <div class="col-lg-6 col-md-6 mt-2 mt-md-0 event-meta-right">
                         <p class="mb-1">
-                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                            <strong>Luogo:</strong> {{ event.luogo }}
+                            <span class="event-meta-right__icon"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                            <span class="event-meta-right__text"><strong>Luogo:</strong> {{ event.luogo }}</span>
                         </p>
                         <p class="mb-1">
-                            <i class="fas fa-user text-muted me-2"></i>
-                            <strong>Organizzatore:</strong> {{ event.organizzatore.user.get_full_name|default:event.organizzatore.user.username }}
+                            <span class="event-meta-right__icon"><i class="fas fa-user text-muted"></i></span>
+                            <span class="event-meta-right__text"><strong>Organizzatore:</strong> {{ event.organizzatore.user.get_full_name|default:event.organizzatore.user.username }}</span>
                         </p>
                         <p class="mb-1">
-                            <i class="fas fa-info-circle text-muted me-2"></i>
-                            <strong>Stato:</strong>
-                            {% if event.stato == 'IN_ATTESA' %}In programma
-                            {% elif event.stato == 'CONCLUSO' %}Concluso
-                            {% elif event.stato == 'AL_COMPLETO' %}Al completo
-                            {% elif event.stato == 'ANNULLATO' %}Annullato
-                            {% else %}{{ event.stato|capfirst }}
-                            {% endif %}
+                            <span class="event-meta-right__icon"><i class="fas fa-info-circle text-muted"></i></span>
+                            <span class="event-meta-right__text">
+                                <strong>Stato:</strong>
+                                {% if event.stato == 'IN_ATTESA' %}In programma
+                                {% elif event.stato == 'CONCLUSO' %}Concluso
+                                {% elif event.stato == 'AL_COMPLETO' %}Al completo
+                                {% elif event.stato == 'ANNULLATO' %}Annullato
+                                {% else %}{{ event.stato|capfirst }}
+                                {% endif %}
+                            </span>
                         </p>
                         <p class="mb-0">
-                            <i class="fas fa-users text-muted me-2"></i>
-                            <strong>Posti disponibili:</strong>
-                            {% if event.posti_massimi %}
-                                {{ event.posti_disponibili }} su {{ event.posti_massimi }}
-                            {% else %}
-                                Illimitati
-                            {% endif %}
+                            <span class="event-meta-right__icon"><i class="fas fa-users text-muted"></i></span>
+                            <span class="event-meta-right__text">
+                                <strong>Posti disponibili:</strong>
+                                {% if event.posti_massimi %}
+                                    {{ event.posti_disponibili }} su {{ event.posti_massimi }}
+                                {% else %}
+                                    Illimitati
+                                {% endif %}
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -236,10 +242,34 @@
     align-items: center;
     justify-content: flex-start;
     flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .event-date__value {
     font-weight: 600;
+    line-height: 1.2;
+}
+
+.event-date__range-label {
+    display: inline-block;
+    width: 2.2em;
+}
+
+.event-meta-right p {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr;
+    column-gap: 0.5rem;
+    align-items: center;
+}
+
+.event-meta-right__icon {
+    flex: 0 0 1.25rem;
+    width: 1.25rem;
+    text-align: center;
+}
+
+.event-meta-right__text {
+    text-align: left;
 }
 
 .event-detail-image {

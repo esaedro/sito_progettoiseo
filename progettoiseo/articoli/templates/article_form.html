@@ -170,16 +170,36 @@
 <div class="modal fade" id="confirmSaveArticleModal" tabindex="-1" aria-labelledby="confirmSaveArticleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmSaveArticleModalLabel">Conferma salvataggio</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="confirmSaveArticleModalLabel">
+          <i class="fas fa-save me-2"></i>
+          Conferma salvataggio
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
       </div>
       <div class="modal-body">
-        Vuoi salvare questo articolo?
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <i class="fas fa-file-alt display-4 text-success"></i>
+          </div>
+          <div>
+            <h6 class="mb-2">Vuoi salvare questo articolo?</h6>
+            <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              L’articolo verrà pubblicato con i dati inseriti e sarà modificabile in seguito.
+            </p>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-        <button type="button" class="btn btn-success" id="confirm-save-article-btn">Conferma</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Annulla
+        </button>
+        <button type="button" class="btn btn-success" id="confirm-save-article-btn">
+          <i class="fas fa-check me-1"></i>
+          Conferma
+        </button>
       </div>
     </div>
   </div>
@@ -189,16 +209,36 @@
 <div class="modal fade" id="confirmEditArticleModal" tabindex="-1" aria-labelledby="confirmEditArticleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmEditArticleModalLabel">Conferma modifica</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="confirmEditArticleModalLabel">
+          <i class="fas fa-edit me-2"></i>
+          Conferma modifica
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
       </div>
       <div class="modal-body">
-        Vuoi salvare le modifiche a questo articolo?
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <i class="fas fa-pen-nib display-4 text-success"></i>
+          </div>
+          <div>
+            <h6 class="mb-2">Vuoi salvare le modifiche a questo articolo?</h6>
+            <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              Le modifiche sostituiranno i dati precedenti.
+            </p>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-        <button type="button" class="btn btn-success" id="confirm-edit-article-btn">Conferma</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Annulla
+        </button>
+        <button type="button" class="btn btn-success" id="confirm-edit-article-btn">
+          <i class="fas fa-check me-1"></i>
+          Conferma
+        </button>
       </div>
     </div>
   </div>
@@ -208,17 +248,40 @@
 <div class="modal fade" id="confirmCancelArticleModal" tabindex="-1" aria-labelledby="confirmCancelArticleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmCancelArticleModalLabel">Conferma annullamento</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="confirmCancelArticleModalLabel">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Uscita dal form
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
       </div>
       <div class="modal-body">
-        Hai modifiche non salvate. Cosa vuoi fare?
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <i class="fas fa-exclamation-circle display-4 text-warning"></i>
+          </div>
+          <div>
+            <h6 class="mb-2">Hai modifiche non salvate.</h6>
+            <p class="text-muted mb-0">
+              <i class="fas fa-info-circle me-1"></i>
+              Puoi restare qui, annullare le modifiche oppure salvarle prima di uscire.
+            </p>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Resta qui</button>
-        <button type="button" class="btn btn-danger" id="confirm-cancel-article-btn">Annulla modifiche</button>
-        <button type="button" class="btn btn-success" id="confirm-save-before-leave-article-btn">Salva modifiche</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Resta qui
+        </button>
+        <button type="button" class="btn btn-danger" id="confirm-cancel-article-btn">
+          <i class="fas fa-undo me-1"></i>
+          Annulla modifiche
+        </button>
+        <button type="button" class="btn btn-success" id="confirm-save-before-leave-article-btn">
+          <i class="fas fa-save me-1"></i>
+          Salva
+        </button>
       </div>
     </div>
   </div>
@@ -731,6 +794,19 @@ textarea.form-control {
     let pendingNav = null; // { type: 'href', href } | { type: 'history', delta }
     let currentHistoryIndex = 0;
 
+    function updatePrimaryButtonState() {
+      // Richiesta: in modifica il pulsante deve essere oscurato e non cliccabile se non ci sono cambiamenti.
+      if (!primaryBtn) return;
+      if (action === 'edit') {
+        primaryBtn.disabled = !isDirty;
+        primaryBtn.setAttribute('aria-disabled', primaryBtn.disabled ? 'true' : 'false');
+      } else {
+        // In creazione lo lasciamo sempre cliccabile (la validazione blocca comunque il salvataggio).
+        primaryBtn.disabled = false;
+        primaryBtn.setAttribute('aria-disabled', 'false');
+      }
+    }
+
     function clearClientErrors() {
       if (clientErrorsEl) {
         clientErrorsEl.innerHTML = '';
@@ -882,6 +958,7 @@ textarea.form-control {
     function recomputeDirty() {
       if (!guardEnabled) return;
       isDirty = (getFormSnapshot() !== initialSnapshot);
+      updatePrimaryButtonState();
     }
 
     function initDirtyTracking() {
@@ -889,6 +966,7 @@ textarea.form-control {
       window.setTimeout(function () {
         initialSnapshot = getFormSnapshot();
         isDirty = false;
+        updatePrimaryButtonState();
       }, 0);
 
       // Input classici
