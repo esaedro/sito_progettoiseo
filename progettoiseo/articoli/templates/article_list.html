@@ -66,7 +66,7 @@
                             <div class="mb-2 article-tags" aria-label="Tag articolo">
                                 {% for tag in article.get_tags_list %}
                                     {% if tag %}
-                                        <span class="badge bg-secondary me-1">#{{ tag|cut:","}}</span>
+                                        <span class="article-tag">#{{ tag|cut:","}}</span>
                                     {% endif %}
                                 {% endfor %}
                             </div>
@@ -319,6 +319,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .badge {
     font-size: 0.75em;
+}
+
+.article-tags {
+    color: #495057;
+    font-size: 0.95rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.article-tags .article-tag {
+    font-weight: 600;
+    color: #000000;
 }
 
 .btn-group .btn {

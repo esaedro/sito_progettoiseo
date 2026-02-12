@@ -216,7 +216,7 @@ class EventoForm(forms.ModelForm):
             org_user, created = UserModel.objects.get_or_create(
                 username='organizzazione_progetto_iseo',
                 defaults={
-                    'first_name': 'Organizzazione',
+                    'first_name': 'Direttivo',
                     'last_name': 'Progetto Iseo',
                     'is_active': True,
                 },
@@ -227,8 +227,8 @@ class EventoForm(forms.ModelForm):
             else:
                 # Se esiste già, assicura che il nome visualizzato sia coerente.
                 changed = False
-                if org_user.first_name != 'Organizzazione':
-                    org_user.first_name = 'Organizzazione'
+                if org_user.first_name != 'Direttivo':
+                    org_user.first_name = 'Direttivo'
                     changed = True
                 if org_user.last_name != 'Progetto Iseo':
                     org_user.last_name = 'Progetto Iseo'

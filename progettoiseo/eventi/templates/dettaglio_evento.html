@@ -23,9 +23,9 @@
             <!-- Metadati dell'evento -->
             <div class="event-meta mb-4 p-3 bg-light rounded">
                 <div class="row align-items-stretch">
-                    <div class="col-lg-6 col-md-6 d-flex align-items-center">
+                    <div class="col-lg-7 col-md-5 d-flex align-items-center">
                         <p class="mb-0 event-date">
-                            <i class="fas fa-calendar-alt text-muted"></i>
+                            <i class="fas fa-calendar-alt display-6 text-muted"></i>
                             <span class="event-date__value">
                                 {% if event.inizio_evento and event.fine_evento %}
                                     {% if event.solo_data %}
@@ -54,7 +54,7 @@
                             </span>
                         </p>
                     </div>
-                    <div class="col-lg-6 col-md-6 mt-2 mt-md-0 event-meta-right">
+                    <div class="col-lg-5 col-md-7 mt-2 mt-md-0 event-meta-right">
                         <p class="mb-1">
                             <span class="event-meta-right__icon"><i class="fas fa-map-marker-alt text-muted"></i></span>
                             <span class="event-meta-right__text"><strong>Luogo:</strong> {{ event.luogo }}</span>
