@@ -412,6 +412,11 @@ textarea.form-control {
 .tag-suggestions .list-group-item:focus {
   background: #eef2ff;
 }
+
+/* Modale annullamento: leggermente più largo del default, ma meno di modal-lg */
+#confirmCancelArticleModal .modal-dialog {
+  --bs-modal-width: 515px;
+}
 </style>
 
 {# Quill (CDN) #}
@@ -846,14 +851,14 @@ textarea.form-control {
       // Titolo obbligatorio
       const titoloVal = titoloEl ? (titoloEl.value || '').trim() : '';
       if (!titoloVal) {
-        messages.push('Il campo "Titolo" è obbligatorio.');
+        messages.push('Il Titolo è obbligatorio.');
         if (titoloEl) titoloEl.classList.add('is-invalid');
       }
 
       // Testo obbligatorio (controllo sul contenuto effettivo dell'editor)
       const testoPlain = getEditorPlainText();
       if (!testoPlain) {
-        messages.push('Il campo "Testo" è obbligatorio.');
+        messages.push('Il Testo è obbligatorio.');
         if (testoEditorEl) testoEditorEl.classList.add('is-invalid');
       }
 

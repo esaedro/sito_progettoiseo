@@ -64,6 +64,16 @@ def event_create(request):
     is_direttivo = user.is_authenticated and (user.is_superuser or user.groups.filter(name="Direttivo").exists())
     if not is_direttivo:
         return redirect('lista_eventi')
+    
+    # Recupera tutti i luoghi unici dagli eventi esistenti
+    existing_luoghi = list(
+        Evento.objects.exclude(luogo__isnull=True)
+        .exclude(luogo__exact='')
+        .values_list('luogo', flat=True)
+        .distinct()
+        .order_by('luogo')
+    )
+    
     if request.method == 'POST':
         form = EventoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -72,7 +82,11 @@ def event_create(request):
             return redirect('lista_eventi')
     else:
         form = EventoForm()
-    return render(request, 'form_eventi.html', {'form': form, 'is_direttivo': is_direttivo})
+    return render(request, 'form_eventi.html', {
+        'form': form,
+        'is_direttivo': is_direttivo,
+        'existing_luoghi': existing_luoghi
+    })
 
 def event_detail(request, pk):
     event = get_object_or_404(Evento, pk=pk)
@@ -119,6 +133,15 @@ def event_update(request, pk):
         messages.error(request, 'Non è possibile modificare un evento concluso. L\'eliminazione rimane possibile dalla pagina di dettaglio.')
         return redirect('evento-detail', pk=event.pk)
 
+    # Recupera tutti i luoghi unici dagli eventi esistenti
+    existing_luoghi = list(
+        Evento.objects.exclude(luogo__isnull=True)
+        .exclude(luogo__exact='')
+        .values_list('luogo', flat=True)
+        .distinct()
+        .order_by('luogo')
+    )
+
     if request.method == 'POST':
         form = EventoForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
@@ -127,7 +150,12 @@ def event_update(request, pk):
             return redirect('evento-detail', pk=event.pk)
     else:
         form = EventoForm(instance=event)
-    return render(request, 'form_eventi.html', {'form': form, 'is_direttivo': is_direttivo, 'event': event})
+    return render(request, 'form_eventi.html', {
+        'form': form,
+        'is_direttivo': is_direttivo,
+        'event': event,
+        'existing_luoghi': existing_luoghi
+    })
 
 @login_required
 def event_register(request, pk):
