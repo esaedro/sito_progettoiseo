@@ -87,7 +87,10 @@
 
         <!-- Immagine -->
         <div class="mb-3">
-          
+          <label class="form-label d-flex justify-content-between align-items-end w-100">
+            <strong>Immagine</strong>
+            <small class="text-muted">(È possibile caricare una sola immagine per articolo, caricandone una nuova la precedente verrà sovrascritta)</small>
+          </label>  
           {% if form.immagine.errors %}
             <div class="text-danger mb-2">
               {% for error in form.immagine.errors %}
@@ -97,7 +100,18 @@
           {% endif %}
           <div class="d-flex align-items-start gap-3 flex-wrap">
             <div class="flex-grow-1" style="min-width: 260px;">
-              {{ form.immagine }}
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-primary" id="immagine-select-btn">
+                  Seleziona Immagine
+                </button>
+                <span id="immagine-selected-name" class="text-muted" style="font-size: 0.95rem;">
+                  Nessun file selezionato
+                </span>
+              </div>
+
+              <div id="immagine-native-widget" class="mt-2">
+                {{ form.immagine }}
+              </div>
             </div>
             <div class="d-flex align-items-start gap-2">
               <div id="immagine-clear-row" class="d-flex align-items-start"></div>
@@ -109,9 +123,11 @@
                     {% if form.instance.pk and form.instance.immagine %}
                       src="{{ form.instance.immagine.url }}"
                       data-has-initial="1"
+                      data-initial-name="{{ form.instance.immagine.name }}"
                     {% else %}
                       src=""
                       data-has-initial="0"
+                      data-initial-name=""
                     {% endif %}
                   />
                 </div>
@@ -382,6 +398,19 @@ textarea.form-control {
   display: none;
 }
 
+/* Nasconde la UI nativa dell'input file (bottone dipendente dal browser) */
+#immagine-native-widget {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Dropdown suggerimenti tag */
 .tag-suggestions {
   position: absolute;
@@ -428,11 +457,24 @@ textarea.form-control {
     const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
     const previewImg = document.getElementById('immagine-preview');
     const previewHint = document.getElementById('immagine-preview-hint');
+    const selectBtn = document.getElementById('immagine-select-btn');
+    const selectedNameEl = document.getElementById('immagine-selected-name');
 
     if (!fileInput || !previewImg) return;
 
     const hasInitial = (previewImg.getAttribute('data-has-initial') || '0') === '1';
     const initialSrc = (previewImg.getAttribute('src') || '').trim();
+    const initialNameRaw = (previewImg.getAttribute('data-initial-name') || '').trim();
+
+    function baseName(path) {
+      if (!path) return '';
+      // Gestisce sia URL che path (con / o \)
+      const normalized = String(path).replace(/\\/g, '/');
+      const last = normalized.split('/').filter(Boolean).pop() || '';
+      return last;
+    }
+
+    const initialFileName = baseName(initialNameRaw) || baseName(initialSrc);
 
     function showPreview(src, hintText) {
       if (!src) {
@@ -449,8 +491,21 @@ textarea.form-control {
     // Inizializza: se l'articolo ha già un'immagine, mostrala.
     if (hasInitial && initialSrc) {
       showPreview(initialSrc, 'Immagine attuale');
+      if (selectedNameEl) {
+        selectedNameEl.textContent = initialFileName
+          ? `Immagine attuale: ${initialFileName}`
+          : 'Immagine attuale';
+      }
     } else {
       showPreview('', 'Nessuna immagine');
+      if (selectedNameEl) selectedNameEl.textContent = 'Nessun file selezionato';
+    }
+
+    // Pulsante custom: apre la finestra di selezione file.
+    if (selectBtn) {
+      selectBtn.addEventListener('click', function () {
+        fileInput.click();
+      });
     }
 
     // Se l'utente seleziona un nuovo file, mostra l'anteprima live.
@@ -466,18 +521,29 @@ textarea.form-control {
 
       if (!file) {
         // Nessun file selezionato: ripristina l'immagine iniziale (se c'era).
-        if (hasInitial && initialSrc) showPreview(initialSrc, 'Immagine attuale');
-        else showPreview('', 'Nessuna immagine');
+        if (hasInitial && initialSrc) {
+          showPreview(initialSrc, 'Immagine attuale');
+          if (selectedNameEl) {
+            selectedNameEl.textContent = initialFileName
+              ? `Immagine attuale: ${initialFileName}`
+              : 'Immagine attuale';
+          }
+        } else {
+          showPreview('', 'Nessuna immagine');
+          if (selectedNameEl) selectedNameEl.textContent = 'Nessun file selezionato';
+        }
         return;
       }
 
       if (file.type && !file.type.startsWith('image/')) {
         showPreview('', 'File selezionato non è un’immagine');
+        if (selectedNameEl) selectedNameEl.textContent = 'File non valido';
         return;
       }
 
       objectUrl = URL.createObjectURL(file);
       showPreview(objectUrl, 'Nuova immagine');
+      if (selectedNameEl) selectedNameEl.textContent = `Nuova immagine: ${file.name}`;
 
       // Se nel form esiste la checkbox di Django per “clear”, disattivala.
       const clearCheckbox = document.querySelector('input[name="immagine-clear"]');
@@ -525,10 +591,18 @@ textarea.form-control {
             objectUrl = null;
           }
           showPreview('', 'Immagine rimossa');
+          if (selectedNameEl) selectedNameEl.textContent = 'Immagine rimossa';
         } else {
           // Se l’utente deseleziona “clear” e non ha scelto un file nuovo, rimostra l’iniziale.
           const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
-          if (!file && hasInitial && initialSrc) showPreview(initialSrc, 'Immagine attuale');
+          if (!file && hasInitial && initialSrc) {
+            showPreview(initialSrc, 'Immagine attuale');
+            if (selectedNameEl) {
+              selectedNameEl.textContent = initialFileName
+                ? `Immagine attuale: ${initialFileName}`
+                : 'Immagine attuale';
+            }
+          }
         }
       });
     }
