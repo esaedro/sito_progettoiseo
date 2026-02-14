@@ -58,11 +58,11 @@ class EventoForm(forms.ModelForm):
             'titolo': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'descrizione': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'required': 'required'}),
             'inizio_evento': forms.DateTimeInput(
-                attrs={'type': 'datetime-local', 'class': 'form-control', 'required': 'required'},
+                attrs={'type': 'text', 'class': 'form-control', 'required': 'required', 'placeholder': 'Seleziona data e ora'},
                 format='%Y-%m-%dT%H:%M'
             ),
             'fine_evento': forms.DateTimeInput(
-                attrs={'type': 'datetime-local', 'class': 'form-control', 'required': 'required'},
+                attrs={'type': 'text', 'class': 'form-control', 'required': 'required', 'placeholder': 'Seleziona data e ora'},
                 format='%Y-%m-%dT%H:%M'
             ),
             'luogo': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
@@ -134,17 +134,8 @@ class EventoForm(forms.ModelForm):
                 )
                 self.fields['solo_data'].initial = inferred
 
-        # Se il form è bound e l'utente ha selezionato "Solo data", rendi i campi come type=date.
-        # Questo evita che, in caso di errori, il browser svuoti i valori (es. value=YYYY-MM-DD su datetime-local).
-        if self.is_bound:
-            raw_toggle = (self.data.get('solo_data') or '').strip().lower()
-            bound_solo_data = raw_toggle in {'1', 'true', 'on', 'yes'}
-            if bound_solo_data:
-                for field in ['inizio_evento', 'fine_evento']:
-                    self.fields[field].widget = forms.DateInput(
-                        attrs={'type': 'date', 'class': 'form-control', 'required': 'required'},
-                        format='%Y-%m-%d'
-                    )
+        # Non è più necessario cambiare il widget lato server: flatpickr gestisce tutto lato client
+        # (Nel caso il form sia bound con errori, l'input rimane type=text e flatpickr lo gestisce correttamente)
 
         # L'organizzatore deve essere sempre selezionato: rimuove la scelta vuota "---------".
         self.fields['organizzatore'].required = True
@@ -264,10 +255,16 @@ class EventoForm(forms.ModelForm):
             if hasattr(self.fields.get(field), 'input_formats'):
                 # aggiunge senza perdere i default di Django
                 current = list(self.fields[field].input_formats or [])
-                if '%Y-%m-%dT%H:%M' not in current:
-                    current.insert(0, '%Y-%m-%dT%H:%M')
-                if '%Y-%m-%d' not in current:
-                    current.append('%Y-%m-%d')
+                # Formati supportati: ISO datetime con T, ISO date solo, e altri comuni
+                formats_to_add = [
+                    '%Y-%m-%dT%H:%M',       # 2026-02-14T18:00
+                    '%Y-%m-%d %H:%M',       # 2026-02-14 18:00
+                    '%Y-%m-%dT%H:%M:%S',    # 2026-02-14T18:00:00
+                    '%Y-%m-%d',             # 2026-02-14
+                ]
+                for fmt in formats_to_add:
+                    if fmt not in current:
+                        current.insert(0, fmt)
                 self.fields[field].input_formats = current
 
         for field in ['inizio_evento', 'fine_evento']:

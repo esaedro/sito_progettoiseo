@@ -107,7 +107,11 @@
               {% endfor %}
             </div>
           {% endif %}
-          {{ form.luogo }}
+          <div class="position-relative">
+            {{ form.luogo }}
+            <div id="luogo-suggestions" class="luogo-suggestions list-group" style="display:none;"></div>
+            {{ existing_luoghi|json_script:"existing-luoghi-data" }}
+          </div>
         </div>
 
         <!-- Immagine -->
@@ -371,7 +375,7 @@
             Resta qui
           </button>
         <button type="button" class="btn btn-danger" id="confirm-cancel-event-btn">
-          <i class="fas fa-right-from-bracket me-1"></i>
+          <i class="fas fa-undo me-1"></i>
           Annulla modifiche
         </button>
           <button type="button" class="btn btn-success" id="confirm-save-before-leave-event-btn">
@@ -489,39 +493,109 @@ textarea.form-control {
   object-fit: cover;
   display: none;
 }
+
+/* Modale annullamento: leggermente più largo del default, ma meno di modal-lg */
+#confirmCancelEventModal .modal-dialog {
+  --bs-modal-width: 515px;
+}
+
+/* Dropdown suggerimenti luoghi */
+.luogo-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 190px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1050;
+}
+
+.luogo-suggestions .list-group-item {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fbfbfc;
+  cursor: pointer;
+}
+
+.luogo-suggestions .list-group-item:last-child {
+  border-bottom: 0;
+}
+
+.luogo-suggestions .list-group-item:hover,
+.luogo-suggestions .list-group-item:focus {
+  background: #eef2ff;
+}
+
+/* Flatpickr custom styles */
+.flatpickr-calendar {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.flatpickr-input {
+  cursor: pointer;
+}
+
+.flatpickr-input[readonly] {
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Input alternativo di flatpickr (quello visibile all'utente) */
+input.flatpickr-input.form-control[readonly] {
+  background-color: white;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
 </style>
+
+{# Flatpickr (CDN) - Calendario personalizzato #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
 
 {# Quill (CDN) #}
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
 <script>
+  // Variabili globali - accessibili da tutti gli script
+  let startPicker = null;
+  let endPicker = null;
+  let startInput = null;
+  let endInput = null;
+  let soloDataEl = null;
+  let saveModalEl = null;
+  let editModalEl = null;
+  let editWarningModalEl = null;
+  let formEl = null;
+</script>
+
+<script>
   document.addEventListener('DOMContentLoaded', function () {
     const dateOnlyToggle = document.getElementById('solo-data');
-    const startInput = document.getElementById('{{ form.inizio_evento.id_for_label }}');
-    const endInput = document.getElementById('{{ form.fine_evento.id_for_label }}');
+    startInput = document.getElementById('{{ form.inizio_evento.id_for_label }}');
+    endInput = document.getElementById('{{ form.fine_evento.id_for_label }}');
+    soloDataEl = dateOnlyToggle;
     const endClientError = document.getElementById('fine-evento-client-error');
     const endInlineWarning = document.getElementById('fine-evento-inline-warning');
     const startLabelText = document.getElementById('inizio-evento-label-text');
     const endLabelText = document.getElementById('fine-evento-label-text');
 
+    if (!startInput || !endInput || typeof flatpickr === 'undefined') return;
+
+    // startPicker e endPicker sono ora variabili globali dichiarate sopra
+
     function getDatePart(v) {
       const s = (v || '').trim();
       if (!s) return '';
       return s.includes('T') ? s.split('T')[0] : s;
-    }
-
-    function updateEndMin() {
-      if (!startInput || !endInput) return;
-      const startVal = (startInput.value || '').trim();
-      if (!startVal) {
-        endInput.removeAttribute('min');
-        return;
-      }
-
-      // min deve essere coerente con il tipo corrente (date vs datetime-local)
-      const minVal = (endInput.type === 'date') ? getDatePart(startVal) : startVal;
-      endInput.min = minVal;
     }
 
     function validateEndAfterStart() {
@@ -542,7 +616,7 @@ textarea.form-control {
         return true;
       }
 
-      const isDateOnly = (startInput.type === 'date') || (endInput.type === 'date');
+      const isDateOnly = dateOnlyToggle && dateOnlyToggle.checked;
       const startCmp = isDateOnly ? getDatePart(startVal) : startVal;
       const endCmp = isDateOnly ? getDatePart(endVal) : endVal;
 
@@ -570,113 +644,169 @@ textarea.form-control {
         endClientError.textContent = msg;
         endClientError.classList.remove('d-none');
       }
-      if (endInlineWarning) endInlineWarning.classList.remove('d-none');
+      if (endInlineWarning) {
+        endInlineWarning.textContent = msg;
+        endInlineWarning.classList.remove('d-none');
+      }
       return false;
+    }
+
+    function initStartPicker(isDateOnly) {
+      if (startPicker) {
+        startPicker.destroy();
+        startPicker = null;
+      }
+
+      const initialValue = startInput.value || '';
+      
+      startPicker = flatpickr(startInput, {
+        enableTime: !isDateOnly,
+        time_24hr: true,
+        dateFormat: isDateOnly ? 'Y-m-d' : 'Y-m-dTH:i',
+        altInput: true,
+        altFormat: isDateOnly ? 'd/m/Y' : 'd/m/Y - H:i',
+        locale: 'it',
+        minuteIncrement: 1,
+        allowInput: false,
+        defaultHour: 18,
+        defaultMinute: 0,
+        onChange: function(selectedDates) {
+          if (selectedDates.length > 0 && endPicker) {
+            endPicker.set('minDate', selectedDates[0]);
+          }
+          validateEndAfterStart();
+        },
+        onReady: function(dateObj, dateStr, instance) {
+          // Assicura che il campo nascosto abbia il formato corretto
+        }
+      });
+
+      if (initialValue) {
+        startPicker.setDate(initialValue, false);
+      }
+    }
+
+    function initEndPicker(isDateOnly) {
+      if (endPicker) {
+        endPicker.destroy();
+        endPicker = null;
+      }
+
+      const initialValue = endInput.value || '';
+      const startVal = startInput.value || '';
+
+      endPicker = flatpickr(endInput, {
+        enableTime: !isDateOnly,
+        time_24hr: true,
+        dateFormat: isDateOnly ? 'Y-m-d' : 'Y-m-dTH:i',
+        altInput: true,
+        altFormat: isDateOnly ? 'd/m/Y' : 'd/m/Y - H:i',
+        locale: 'it',
+        minuteIncrement: 1,
+        allowInput: false,
+        defaultHour: 20,
+        defaultMinute: 0,
+        onChange: function() {
+          validateEndAfterStart();
+        },
+        onReady: function(dateObj, dateStr, instance) {
+          // Assicura che il campo nascosto abbia il formato corretto
+        }
+      });
+
+      if (initialValue) {
+        endPicker.setDate(initialValue, false);
+      }
+
+      // Imposta il minimo basato sull'inizio
+      if (startVal) {
+        const startDate = startPicker ? startPicker.selectedDates[0] : null;
+        if (startDate) {
+          endPicker.set('minDate', startDate);
+        }
+      }
     }
 
     function applyDateOnlyState(isDateOnly) {
       if (!dateOnlyToggle || !startInput || !endInput) return;
 
-      // Aggiorna i testi delle label in base allo stato (solo data vs data e ora)
+      // Aggiorna i testi delle label
       if (startLabelText) startLabelText.textContent = isDateOnly ? 'Inizio evento - Data' : 'Inizio evento - Data e ora';
       if (endLabelText) endLabelText.textContent = isDateOnly ? 'Fine evento - Data' : 'Fine evento - Data e ora';
 
-      if (isDateOnly) {
-        // Passa a solo data mantenendo SEMPRE la data.
-        // Nota: cambiare input.type può far perdere il value in alcuni browser se il formato non coincide.
-        const currentStart = (startInput.value || '').trim();
-        const currentEnd = (endInput.value || '').trim();
+      // Salva i valori correnti
+      const currentStart = (startInput.value || '').trim();
+      const currentEnd = (endInput.value || '').trim();
 
-        // Salva il datetime completo solo se lo abbiamo davvero (contiene 'T').
+      if (isDateOnly) {
+        // Passa a solo data
         if (currentStart.includes('T')) startInput.dataset.prevDatetime = currentStart;
         if (currentEnd.includes('T')) endInput.dataset.prevDatetime = currentEnd;
 
-        // Determina le date da mostrare: prima la data corrente, poi quella estratta dal prevDatetime.
         const startDate = getDatePart(currentStart) || getDatePart((startInput.dataset.prevDatetime || '').trim());
         const endDate = getDatePart(currentEnd) || getDatePart((endInput.dataset.prevDatetime || '').trim());
 
-        startInput.type = 'date';
-        endInput.type = 'date';
+        // Reinizializza i picker in modalità solo data
+        initStartPicker(true);
+        initEndPicker(true);
+
         if (startDate) startInput.value = startDate;
         if (endDate) endInput.value = endDate;
       } else {
         // Torna a data+ora
-        // Nota: in fase di modifica i campi sono già precompilati (YYYY-MM-DDTHH:MM).
-        // Non dobbiamo sovrascriverli con gli orari di default 18/20, a meno che
-        // non stiamo effettivamente tornando da "solo data".
         const prevStart = (startInput.dataset.prevDatetime || '').trim();
         const prevEnd = (endInput.dataset.prevDatetime || '').trim();
-        const currentStart = (startInput.value || '').trim();
-        const currentEnd = (endInput.value || '').trim();
-        const currentHasTimeStart = currentStart.includes('T');
-        const currentHasTimeEnd = currentEnd.includes('T');
 
-        startInput.type = 'datetime-local';
-        endInput.type = 'datetime-local';
+        // Reinizializza i picker in modalità data+ora
+        initStartPicker(false);
+        initEndPicker(false);
 
-        // Priorità:
-        // 1) ripristina il datetime precedente se presente (toggle da solo-data)
-        // 2) altrimenti mantieni l'eventuale datetime già presente (modifica)
-        // 3) fallback: aggiungi orari di default sensati partendo dalla data
+        // Ripristina i valori
         if (prevStart && prevStart.includes('T')) {
           startInput.value = prevStart;
-        } else if (currentHasTimeStart) {
+        } else if (currentStart.includes('T')) {
           startInput.value = currentStart;
         } else {
-          const startDate = getDatePart(currentStart) || (startInput.dataset.prevDate || '').trim();
+          const startDate = getDatePart(currentStart);
           startInput.value = startDate ? `${startDate}T18:00` : '';
         }
 
         if (prevEnd && prevEnd.includes('T')) {
           endInput.value = prevEnd;
-        } else if (currentHasTimeEnd) {
+        } else if (currentEnd.includes('T')) {
           endInput.value = currentEnd;
         } else {
-          const endDate = getDatePart(currentEnd) || (endInput.dataset.prevDate || '').trim();
+          const endDate = getDatePart(currentEnd);
           endInput.value = endDate ? `${endDate}T20:00` : '';
         }
       }
 
-      updateEndMin();
       validateEndAfterStart();
     }
 
-    if (dateOnlyToggle && startInput && endInput) {
-      applyDateOnlyState(dateOnlyToggle.checked);
+    // Inizializzazione
+    if (dateOnlyToggle) {
+      const isInitiallyDateOnly = dateOnlyToggle.checked;
+      applyDateOnlyState(isInitiallyDateOnly);
+
       dateOnlyToggle.addEventListener('change', function () {
-        // Salva senza rovinare prevDatetime:
-        // - quando si ATTIVA "solo data": memorizza eventuale datetime completo
-        // - quando si DISATTIVA: memorizza la sola data come fallback per riassegnare 18/20
-        if (dateOnlyToggle.checked) {
-          const s = (startInput.value || '').trim();
-          const e = (endInput.value || '').trim();
-          if (s.includes('T')) startInput.dataset.prevDatetime = s;
-          if (e.includes('T')) endInput.dataset.prevDatetime = e;
-        } else {
-          startInput.dataset.prevDate = getDatePart((startInput.value || '').trim());
-          endInput.dataset.prevDate = getDatePart((endInput.value || '').trim());
-        }
         applyDateOnlyState(dateOnlyToggle.checked);
       });
+    } else {
+      // Nessun toggle, usa sempre datetime
+      initStartPicker(false);
+      initEndPicker(false);
+    }
 
-      startInput.addEventListener('change', updateEndMin);
-      startInput.addEventListener('input', updateEndMin);
-      startInput.addEventListener('change', validateEndAfterStart);
-      startInput.addEventListener('input', validateEndAfterStart);
-      endInput.addEventListener('change', validateEndAfterStart);
-      endInput.addEventListener('input', validateEndAfterStart);
-      updateEndMin();
-      validateEndAfterStart();
-
-      const formEl = startInput.closest('form');
-      if (formEl) {
-        formEl.addEventListener('submit', function (e) {
-          if (!validateEndAfterStart()) {
-            e.preventDefault();
-            endInput.focus();
-          }
-        });
-      }
+    // Validazione al submit
+    const formEl = startInput.closest('form');
+    if (formEl) {
+      formEl.addEventListener('submit', function (e) {
+        if (!validateEndAfterStart()) {
+          e.preventDefault();
+          endInput.focus();
+        }
+      });
     }
 
     const fileInput = document.getElementById('{{ form.immagine.id_for_label }}');
@@ -941,17 +1071,122 @@ textarea.form-control {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const luogoInput = document.getElementById('{{ form.luogo.id_for_label }}');
+    const suggestionsEl = document.getElementById('luogo-suggestions');
+
+    let existingLuoghi = [];
+    const existingLuoghiEl = document.getElementById('existing-luoghi-data');
+    if (existingLuoghiEl && existingLuoghiEl.textContent) {
+      try {
+        existingLuoghi = JSON.parse(existingLuoghiEl.textContent);
+      } catch (e) {
+        console.error('Errore nel parsing dei luoghi esistenti:', e);
+      }
+    }
+
+    if (!luogoInput || !suggestionsEl || existingLuoghi.length === 0) return;
+
+    function normalizeLuogo(s) {
+      return (s || '').trim().toLowerCase();
+    }
+
+    function insertLuogo(luogo) {
+      luogoInput.value = luogo;
+      hideSuggestions();
+      luogoInput.focus();
+    }
+
+    function renderSuggestions(filterText) {
+      const normalizedFilter = normalizeLuogo(filterText);
+      
+      if (!normalizedFilter) {
+        // Se il campo è vuoto, mostra tutti i luoghi
+        const filtered = existingLuoghi;
+        if (filtered.length === 0) {
+          hideSuggestions();
+          return;
+        }
+        
+        const html = filtered
+          .map(luogo => `<button type="button" class="list-group-item list-group-item-action" data-luogo="${luogo}">${luogo}</button>`)
+          .join('');
+        
+        suggestionsEl.innerHTML = html;
+        suggestionsEl.style.display = 'block';
+
+        // Event listener per ogni suggerimento
+        suggestionsEl.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', function () {
+            insertLuogo(this.getAttribute('data-luogo'));
+          });
+        });
+        return;
+      }
+
+      // Filtra i luoghi che contengono il testo inserito
+      const filtered = existingLuoghi.filter(luogo => 
+        normalizeLuogo(luogo).includes(normalizedFilter)
+      );
+
+      if (filtered.length === 0) {
+        hideSuggestions();
+        return;
+      }
+
+      const html = filtered
+        .map(luogo => `<button type="button" class="list-group-item list-group-item-action" data-luogo="${luogo}">${luogo}</button>`)
+        .join('');
+      
+      suggestionsEl.innerHTML = html;
+      suggestionsEl.style.display = 'block';
+
+      // Event listener per ogni suggerimento
+      suggestionsEl.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function () {
+          insertLuogo(this.getAttribute('data-luogo'));
+        });
+      });
+    }
+
+    function hideSuggestions() {
+      suggestionsEl.style.display = 'none';
+    }
+
+    function updateSuggestions() {
+      const value = luogoInput.value || '';
+      renderSuggestions(value);
+    }
+
+    luogoInput.addEventListener('focus', updateSuggestions);
+    luogoInput.addEventListener('input', updateSuggestions);
+    luogoInput.addEventListener('click', updateSuggestions);
+    
+    luogoInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        hideSuggestions();
+      }
+    });
+    
+    luogoInput.addEventListener('blur', function () {
+      // Ritardo per permettere il click sul suggerimento
+      window.setTimeout(hideSuggestions, 150);
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
     const primaryBtn = document.getElementById('event-primary-action');
     if (!primaryBtn) return;
 
-    const formEl = primaryBtn.closest('form');
+    formEl = primaryBtn.closest('form');
     if (!formEl) return;
 
     const action = (primaryBtn.getAttribute('data-event-action') || '').toLowerCase();
 
-    const saveModalEl = document.getElementById('confirmSaveEventModal');
-    const editModalEl = document.getElementById('confirmEditEventModal');
-    const editWarningModalEl = document.getElementById('confirmEditEventWarningModal');
+    saveModalEl = document.getElementById('confirmSaveEventModal');
+    editModalEl = document.getElementById('confirmEditEventModal');
+    editWarningModalEl = document.getElementById('confirmEditEventWarningModal');
     const cancelModalEl = document.getElementById('confirmCancelEventModal');
     const confirmSaveBtn = document.getElementById('confirm-save-event-btn');
     const confirmEditBtn = document.getElementById('confirm-edit-event-btn');
@@ -1075,25 +1310,25 @@ textarea.form-control {
 
       const titoloVal = titoloEl ? (titoloEl.value || '').trim() : '';
       if (!titoloVal) {
-        messages.push('Il titolo è obbligatorio.');
+        messages.push('Il Titolo è obbligatorio.');
         if (titoloEl) titoloEl.classList.add('is-invalid');
       }
 
       const descPlain = getEditorPlainText();
       if (!descPlain) {
-        messages.push('La descrizione è obbligatoria.');
+        messages.push('La Descrizione è obbligatoria.');
         if (descrizioneEditorEl) descrizioneEditorEl.classList.add('is-invalid');
       }
 
       const inizioVal = inizioEl ? (inizioEl.value || '').trim() : '';
       if (!inizioVal) {
-        messages.push('La data di inizio evento è obbligatoria.');
+        messages.push('La Data di inizio evento è obbligatoria.');
         if (inizioEl) inizioEl.classList.add('is-invalid');
       }
 
       const fineVal = fineEl ? (fineEl.value || '').trim() : '';
       if (!fineVal) {
-        messages.push('La data di fine evento è obbligatoria.');
+        messages.push('La Data di fine evento è obbligatoria.');
         if (fineEl) fineEl.classList.add('is-invalid');
       }
 
@@ -1104,13 +1339,13 @@ textarea.form-control {
 
       const luogoVal = luogoEl ? (luogoEl.value || '').trim() : '';
       if (!luogoVal) {
-        messages.push('Il luogo è obbligatorio.');
+        messages.push('Il Luogo è obbligatorio.');
         if (luogoEl) luogoEl.classList.add('is-invalid');
       }
 
       const orgVal = organizzatoreEl ? (organizzatoreEl.value || '').trim() : '';
       if (!orgVal) {
-        messages.push('L’organizzatore è obbligatorio.');
+        messages.push('L’Organizzatore è obbligatorio.');
         if (organizzatoreEl) organizzatoreEl.classList.add('is-invalid');
       }
 
@@ -1143,8 +1378,64 @@ textarea.form-control {
     function submitForm() {
       confirmedSubmit = true;
       guardEnabled = false;
-      if (typeof formEl.requestSubmit === 'function') formEl.requestSubmit();
-      else formEl.submit();
+      
+      // Assicura che i picker di flatpickr abbiano sincronizzato i valori nel formato corretto
+      if (startPicker) {
+        if (startPicker.selectedDates && startPicker.selectedDates.length > 0) {
+          const date = startPicker.selectedDates[0];
+          const isDateOnly = soloDataEl && soloDataEl.checked;
+          
+          if (isDateOnly) {
+            // Formato solo data: YYYY-MM-DD
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            startInput.value = `${year}-${month}-${day}`;
+          } else {
+            // Formato datetime: YYYY-MM-DDTHH:MM
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            startInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+          }
+        }
+      }
+      
+      if (endPicker) {
+        if (endPicker.selectedDates && endPicker.selectedDates.length > 0) {
+          const date = endPicker.selectedDates[0];
+          const isDateOnly = soloDataEl && soloDataEl.checked;
+          
+          if (isDateOnly) {
+            // Formato solo data: YYYY-MM-DD
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            endInput.value = `${year}-${month}-${day}`;
+          } else {
+            // Formato datetime: YYYY-MM-DDTHH:MM
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            endInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+          }
+        }
+      }
+      
+      // Chiudi tutte le modali prima di inviare il form
+      closeModal(saveModalEl);
+      closeModal(editModalEl);
+      closeModal(editWarningModalEl);
+      
+      // Attendi che le modali si chiudano prima di inviare
+      setTimeout(function() {
+        if (typeof formEl.requestSubmit === 'function') formEl.requestSubmit();
+        else formEl.submit();
+      }, 10);
     }
 
     function normalizeUrl(href) {
