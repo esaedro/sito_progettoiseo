@@ -347,6 +347,45 @@
     </div>
 </div>
 
+<!-- Modale Conferma Annullamento Modifiche -->
+<div class="modal fade" id="confermaAnnullamentoModal" tabindex="-1" aria-labelledby="confermaAnnullamentoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="confermaAnnullamentoModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Conferma Annullamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-undo-alt display-4 text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-2">Sei sicuro di voler annullare tutte le modifiche?</h6>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Tutte le modifiche non salvate verranno perse e i campi torneranno ai valori originali.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Continua Modifiche
+                </button>
+                <button type="button" id="conferma-annullamento-btn" class="btn btn-warning">
+                    <i class="fas fa-undo me-1"></i>
+                    Annulla Modifiche
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const formImmagineProfilo = document.getElementById('form-immagine-profilo');
@@ -559,12 +598,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cancelAllBtn) {
         cancelAllBtn.addEventListener('click', function() {
             if (hasChanges) {
-                if (confirm('Sei sicuro di voler annullare tutte le modifiche?')) {
-                    resetAllFields();
-                }
+                // Mostra il modale di conferma
+                const annullamentoModal = new bootstrap.Modal(document.getElementById('confermaAnnullamentoModal'));
+                annullamentoModal.show();
             } else {
                 toggleEditMode(false);
             }
+        });
+    }
+
+    // Gestione conferma annullamento modifiche
+    const confermaAnnullamentoBtn = document.getElementById('conferma-annullamento-btn');
+    if (confermaAnnullamentoBtn) {
+        confermaAnnullamentoBtn.addEventListener('click', function() {
+            const annullamentoModal = bootstrap.Modal.getInstance(document.getElementById('confermaAnnullamentoModal'));
+            if (annullamentoModal) {
+                annullamentoModal.hide();
+            }
+            resetAllFields();
         });
     }
 
