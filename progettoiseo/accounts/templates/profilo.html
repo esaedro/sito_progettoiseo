@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentImage = document.getElementById('current-profile-image');
                 const previewBadge = document.getElementById('preview-badge');
                 if (currentImage) {
-                    currentImage.src = '{{ profilo_utente.immagine_profilo.url|default:"/media/accounts/foto_profilo_base.png" }}';
+                    currentImage.src = '{% if profilo_utente.immagine_profilo %}{{ profilo_utente.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}';
                 }
                 if (previewBadge) {
                     previewBadge.style.display = 'none';
@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentImage = document.getElementById('current-profile-image');
             const previewBadge = document.getElementById('preview-badge');
             if (currentImage) {
-                currentImage.src = '{{ profilo_utente.immagine_profilo.url|default:"/media/accounts/foto_profilo_base.png" }}';
+                currentImage.src = '{% if profilo_utente.immagine_profilo %}{{ profilo_utente.immagine_profilo.url }}{% else %}/media/accounts/foto_profilo_base.png{% endif %}';
             }
             if (previewBadge) {
                 previewBadge.style.display = 'none';
