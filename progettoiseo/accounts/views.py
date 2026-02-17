@@ -36,7 +36,7 @@ def custom_login(request):
                 else:
                     return redirect('home')
             else:
-                messages.error(request, 'Username/Email o password non corretti.')
+                messages.error(request, 'Nome utente/Email o password non corretti.')
     else:
         form = LoginForm()
 

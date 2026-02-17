@@ -3,6 +3,7 @@
         <a class="navbar-brand d-flex align-items-center py-2 nav-hover rounded-pill" href="/home">
             <img src="/media/logo_progettoiseo.png" alt="Logo Progettoiseo" width="60" height="60"
                  class="rounded-circle me-2 ms-2 bg-image " style="object-fit: cover;"/>
+            Home page
             <!-- <span class="fw-bold fs-5 text-light d-none d-md-inline">Progetto Iseo</span> -->
         </a>
 
@@ -81,11 +82,7 @@
                 <span></span>
             </div>
         </button>
-        {% if user.is_authenticated %}
-          <div style="width: 8em;"> </div>
-        {% else %}
-           <div style="width: 4em;"> </div>
-        {% endif %}
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav navbar-nav-custom">
                 <li class="nav-item ">
@@ -119,6 +116,11 @@
                 </li>
             </ul>
         </div>
+        {% if user.is_authenticated %}
+
+        {% else %}
+           <div style="width: 4em;"> </div>
+        {% endif %}
     </div>
 </nav>
 
