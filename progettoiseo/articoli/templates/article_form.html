@@ -98,9 +98,30 @@
               {% endfor %}
             </div>
           {% endif %}
-          <div class="d-flex align-items-start gap-3 flex-wrap">
-            <div class="flex-grow-1" style="min-width: 260px;">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="article-image-row d-flex align-items-start gap-3 flex-wrap">
+            <!-- Sinistra: anteprima -->
+            <div class="image-preview-wrap">
+              <div class="image-preview" aria-label="Anteprima immagine">
+                <img
+                  id="immagine-preview"
+                  alt="Anteprima immagine selezionata"
+                  {% if form.instance.pk and form.instance.immagine %}
+                    src="{{ form.instance.immagine.url }}"
+                    data-has-initial="1"
+                    data-initial-name="{{ form.instance.immagine.name }}"
+                  {% else %}
+                    src=""
+                    data-has-initial="0"
+                    data-initial-name=""
+                  {% endif %}
+                />
+              </div>
+              <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
+            </div>
+
+            <!-- Destra: bottone in alto, checkbox svuota in basso -->
+            <div class="article-image-actions d-flex flex-column">
+              <div class="article-image-select-wrap d-flex align-items-center gap-2">
                 <button type="button" class="btn btn-outline-primary" id="immagine-select-btn">
                   Seleziona Immagine
                 </button>
@@ -109,29 +130,10 @@
                 </span>
               </div>
 
+              <div id="immagine-clear-row" class="d-inline-flex align-items-center mt-2"></div>
+
               <div id="immagine-native-widget" class="mt-2">
                 {{ form.immagine }}
-              </div>
-            </div>
-            <div class="d-flex align-items-start gap-2">
-              <div id="immagine-clear-row" class="d-flex align-items-start"></div>
-              <div class="image-preview-wrap">
-                <div class="image-preview" aria-label="Anteprima immagine">
-                  <img
-                    id="immagine-preview"
-                    alt="Anteprima immagine selezionata"
-                    {% if form.instance.pk and form.instance.immagine %}
-                      src="{{ form.instance.immagine.url }}"
-                      data-has-initial="1"
-                      data-initial-name="{{ form.instance.immagine.name }}"
-                    {% else %}
-                      src=""
-                      data-has-initial="0"
-                      data-initial-name=""
-                    {% endif %}
-                  />
-                </div>
-                <div id="immagine-preview-hint" class="form-text mt-1">Anteprima</div>
               </div>
             </div>
           </div>
@@ -291,7 +293,7 @@
           Resta qui
         </button>
         <button type="button" class="btn btn-danger" id="confirm-cancel-article-btn">
-          <i class="fas fa-undo me-1"></i>
+          <i class="fas fa-trash me-1"></i>
           Annulla modifiche
         </button>
         <button type="button" class="btn btn-success" id="confirm-save-before-leave-article-btn">
@@ -363,8 +365,52 @@ textarea.form-control {
   min-width: 160px;
 }
 
+.article-image-actions {
+  min-width: 260px;
+  align-items: flex-start;
+}
+
+.article-image-select-wrap {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+#immagine-selected-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+@media (min-width: 768px) {
+  /* Su desktop: altezza allineata al riquadro immagine (non alla scritta "Anteprima"). */
+  .article-image-actions {
+    min-height: 110px; /* altezza .image-preview */
+    position: relative;
+  }
+
+  /* Centra verticalmente il pulsante rispetto all'anteprima; la checkbox resta subito sotto. */
+  .article-image-select-wrap {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  #immagine-clear-row {
+    position: absolute;
+    left: 0;
+    top: calc(50% + 28px);
+    margin-top: 0 !important;
+  }
+}
+
 #immagine-clear-row {
   white-space: nowrap;
+}
+
+#immagine-clear-row:empty {
+  display: none !important;
 }
 
 #immagine-clear-row .form-check {
@@ -444,7 +490,7 @@ textarea.form-control {
 
 /* Modale annullamento: leggermente più largo del default, ma meno di modal-lg */
 #confirmCancelArticleModal .modal-dialog {
-  --bs-modal-width: 515px;
+  --bs-modal-width: 512px;
 }
 </style>
 
@@ -489,8 +535,10 @@ textarea.form-control {
     }
 
     // Inizializza: se l'articolo ha già un'immagine, mostrala.
+    // La dicitura "Immagine attuale" viene mostrata a destra del bottone;
+    // sotto l'anteprima lasciamo un hint neutro.
     if (hasInitial && initialSrc) {
-      showPreview(initialSrc, 'Immagine attuale');
+      showPreview(initialSrc, 'Anteprima');
       if (selectedNameEl) {
         selectedNameEl.textContent = initialFileName
           ? `Immagine attuale: ${initialFileName}`
@@ -522,7 +570,7 @@ textarea.form-control {
       if (!file) {
         // Nessun file selezionato: ripristina l'immagine iniziale (se c'era).
         if (hasInitial && initialSrc) {
-          showPreview(initialSrc, 'Immagine attuale');
+          showPreview(initialSrc, 'Anteprima');
           if (selectedNameEl) {
             selectedNameEl.textContent = initialFileName
               ? `Immagine attuale: ${initialFileName}`
@@ -596,7 +644,7 @@ textarea.form-control {
           // Se l’utente deseleziona “clear” e non ha scelto un file nuovo, rimostra l’iniziale.
           const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
           if (!file && hasInitial && initialSrc) {
-            showPreview(initialSrc, 'Immagine attuale');
+            showPreview(initialSrc, 'Anteprima');
             if (selectedNameEl) {
               selectedNameEl.textContent = initialFileName
                 ? `Immagine attuale: ${initialFileName}`
