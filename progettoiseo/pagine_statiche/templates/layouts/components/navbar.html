@@ -52,7 +52,7 @@
                         {% endif %}
                         <li><hr class="dropdown-divider my-0" /></li>
                         <li>
-                            <a href="{% url 'logout' %}" class="dropdown-item py-2 px-3 text-danger">
+                            <a href="{% url 'logout' %}?next={{ request.get_full_path }}" class="dropdown-item py-2 px-3 text-danger">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>

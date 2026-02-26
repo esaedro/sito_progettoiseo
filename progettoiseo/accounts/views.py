@@ -50,7 +50,7 @@ def custom_logout(request):
         return redirect('logout_success')
     else:
         # Se è una GET request, mostra una pagina di conferma
-        return render(request, 'registration/logout_confirm.html')
+        return render(request, 'registration/logout_confirm.html', {'back_url': request.GET.get('next', 'home')})
 
 def logout_success(request):
     return render(request, 'registration/logout.html')
